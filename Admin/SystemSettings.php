@@ -264,7 +264,7 @@ if(!isset($_SESSION['username'])){
                             <div class="toggle-switch" onclick="this.classList.toggle('active')"></div>
                         </div>
                         <div style="margin-top: 1.5rem;">
-                            <a href="#" class="btn btn-primary btn-sm">Manage Rules</a>
+                            <a href="GradingSettings.php" class="btn btn-primary btn-sm">Configure Grading</a>
                         </div>
                     </div>
 

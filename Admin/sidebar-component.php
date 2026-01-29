@@ -49,6 +49,22 @@
         
         <!-- System -->
         <div class="sidebar-section-label">System</div>
+        <a href="Reports.php" class="sidebar-nav-item <?php echo (basename($_SERVER['PHP_SELF']) == 'Reports.php') ? 'active' : ''; ?>">
+            <span class="sidebar-nav-icon">📊</span>
+            <span>Reports & Analytics</span>
+        </a>
+        <a href="DataExport.php" class="sidebar-nav-item <?php echo (basename($_SERVER['PHP_SELF']) == 'DataExport.php') ? 'active' : ''; ?>">
+            <span class="sidebar-nav-icon">📥</span>
+            <span>Data Export</span>
+        </a>
+        <a href="DatabaseBackup.php" class="sidebar-nav-item <?php echo (basename($_SERVER['PHP_SELF']) == 'DatabaseBackup.php') ? 'active' : ''; ?>">
+            <span class="sidebar-nav-icon">💾</span>
+            <span>Database Backup</span>
+        </a>
+        <a href="SecurityLogs.php" class="sidebar-nav-item <?php echo (basename($_SERVER['PHP_SELF']) == 'SecurityLogs.php') ? 'active' : ''; ?>">
+            <span class="sidebar-nav-icon">🔒</span>
+            <span>Security Logs</span>
+        </a>
         <a href="SystemSettings.php" class="sidebar-nav-item <?php echo (basename($_SERVER['PHP_SELF']) == 'SystemSettings.php') ? 'active' : ''; ?>">
             <span class="sidebar-nav-icon">⚙️</span>
             <span>System Settings</span>
