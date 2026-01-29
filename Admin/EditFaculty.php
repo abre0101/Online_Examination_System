@@ -1,117 +1,210 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
-<link href="style1.css" rel="stylesheet" type="text/css" />
-<title>Edit Faculty</title>
-<style type="text/css">
-<!--
-.style10 {font-family: Verdana, Arial, Helvetica, sans-serif; font-size: small; font-weight: bold; color: #FFFFFF; }
-.style8 {font-family: Verdana, Arial, Helvetica, sans-serif; font-size: small; font-weight: bold; }
--->
-</style>
-
-<script src="../SpryAssets/SpryValidationTextField.js" type="text/javascript"></script>
-<script src="../SpryAssets/SpryTabbedPanels.js" type="text/javascript"></script>
-<link href="../SpryAssets/SpryValidationTextField.css" rel="stylesheet" type="text/css" />
-<link href="../SpryAssets/SpryTabbedPanels.css" rel="stylesheet" type="text/css" />
-<style type="text/css">
- #dep{
-        float:left;
-  width:550px;
-  margin-left:10px;
-  padding: 0px 10px 30px 0px;
-  display:inline;
-    }</style>
-<!--
-.style11 {color: #000000}
--->
-</style>
-</head>
-
-<body>
-<div id="container">
-<div id="header">
-  </div>
-  <div id="content">
-    
-    <?php
-    include "left_head.php";
-    ?>
-    <div id="left">
-      <div id="dep">
-          <h1>&nbsp;</h1>
-			<table width="100%" height="209" border="0" cellpadding="0" cellspacing="0">
-              <tr>
-                <td height="33" bgcolor="#07dddd" color="#000000" ><span class="style10 style11">Edit Faculty Information</span></td>
-              </tr>
-              <tr>
-                <td>
 <?php
-$Id=$_GET['FacId'];
-// Establish Connection with Database
-$con = new mysqli("localhost","root","","oes");
-// Specify the query to execute
-$sql = "select * from faculty where faculty_id='".$Id."'";
-// Execute query
-$result = $con->query($sql);
-// Loop through each records 
-while($row = $result->fetch_array())
-{
-$Id=$row['faculty_id'];
-$Name=$row['faculty_name'];
-
+session_start();
+if(!isset($_SESSION['username'])){
+    header("Location:../index-modern.php");
+    exit();
 }
-?> <br/>
-                  <form method="post" action="UpdateFaculty.php?FacId=<?php echo $Id;?>">
-                    <table width="100%" border="0">
-                      <tr>
-                        <td height="32"><span class="style8">Faculty Id</span></td>
-                        <td><span  id="sprytextfield2">
-                                <label><?php echo $Id;?>
-                            </label></span></td>
-                      </tr>
-                      <tr>
-                        <td height="36"><span class="style8">Faculty Name:</span></td>
-                       <td><span id="sprytextfield1">
-                                <label>
-                                <input type="text" name="faculty_name" id="faculty_name" />
-                                </label>
-                                <span class="textfieldRequiredMsg">Please Enter Faculty ID</span></span></td>
-                            </tr>
-                      </tr>
-                      
-                      
-                      <tr>
-                        <td></td>
-                        <td><input type="submit" name="submit" value="Update Record" /></td>
-                      </tr>
-</table>
-                  </form>
- <?php
-// Close the connection
-$con->close();
-?></td>
-              </tr>
-		  </table>
-			<h1>&nbsp;</h1>
-			
-	        <p>&nbsp;</p>
-	
-	<h1>&nbsp;</h1>
-	  </div>
-		
-		<div id="footerline"></div>
-	</div>
-	
-	<div id="footer">Copyright &copy; 2021 AMU Online Examination System.  All rights reserved.&nbsp;</div>		
-</div>
-<script type="text/javascript">
-<!--
 
-var sprytextfield1 = new Spry.Widget.ValidationTextField("sprytextfield1");
-var sprytextfield2 = new Spry.Widget.ValidationTextField("sprytextfield2");
-//-->
-</script>
+// Database connection
+$con = new mysqli("localhost","root","","oes");
+if ($con->connect_error) {
+    die("Connection failed: " . $con->connect_error);
+}
+
+// Get faculty data
+$FacId = $_GET['FacId'];
+$sql = "select * from faculty where faculty_id='".$FacId."'";
+$result = $con->query($sql);
+
+if($row = $result->fetch_array()) {
+    $Id = $row['faculty_id'];
+    $Name = $row['faculty_name'];
+} else {
+    header("Location: Faculty.php");
+    exit();
+}
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit College - Admin Dashboard</title>
+    <link href="../assets/css/modern-v2.css" rel="stylesheet">
+    <link href="../assets/css/admin-modern-v2.css" rel="stylesheet">
+    <link href="../assets/css/admin-sidebar.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        .page-header {
+            text-align: center;
+        }
+        
+        .edit-container {
+            background: white;
+            border-radius: var(--radius-lg);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .info-section {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: var(--radius-md);
+            margin-bottom: 2rem;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .info-section h3 {
+            margin: 0 0 1rem 0;
+            color: var(--primary-color);
+            font-size: 1.1rem;
+        }
+        
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .info-item:last-child {
+            border-bottom: none;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+        
+        .info-value {
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+        
+        .form-section h3 {
+            margin: 0 0 1.5rem 0;
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            font-size: 1rem;
+        }
+        
+        .form-group input[type="text"] {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: var(--radius-md);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .form-group input[type="text"]:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(0, 51, 102, 0.1);
+        }
+        
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 2px solid #e0e0e0;
+        }
+    </style>
+</head>
+<body class="admin-layout">
+    <?php include 'sidebar-component.php'; ?>
+
+    <div class="admin-main-content">
+        <?php include 'header-component.php'; ?>
+
+        <div class="admin-content">
+            <div class="page-header">
+                <h1>✏️ Edit College Information</h1>
+                <p>Update college details</p>
+            </div>
+
+            <div class="edit-container">
+                <div class="info-section">
+                    <h3>📋 Current Information</h3>
+                    <div class="info-item">
+                        <span class="info-label">College ID</span>
+                        <span class="info-value"><?php echo $Id; ?></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">College Name</span>
+                        <span class="info-value"><?php echo $Name; ?></span>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>🔄 Update Information</h3>
+                    <form method="post" action="UpdateFaculty.php?FacId=<?php echo $Id;?>">
+                        <div class="form-group">
+                            <label for="faculty_name">New College Name:</label>
+                            <input type="text" name="faculty_name" id="faculty_name" required placeholder="Enter new college name" value="<?php echo $Name; ?>">
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">
+                                ✓ Update College
+                            </button>
+                            <a href="Faculty.php" class="btn btn-secondary">
+                                ← Back to Colleges
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('en-US', { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: true 
+            });
+            document.getElementById('currentTime').textContent = timeString;
+        }
+        updateTime();
+        setInterval(updateTime, 1000);
+
+        function toggleSidebar() {
+            document.querySelector('.admin-sidebar').classList.toggle('open');
+        }
+
+        document.addEventListener('click', function(event) {
+            const sidebar = document.querySelector('.admin-sidebar');
+            const menuBtn = document.querySelector('.mobile-menu-btn');
+            
+            if (window.innerWidth <= 1024) {
+                if (!sidebar.contains(event.target) && !menuBtn.contains(event.target)) {
+                    sidebar.classList.remove('open');
+                }
+            }
+        });
+    </script>
 </body>
 </html>
+<?php 
+$con->close();
+?>

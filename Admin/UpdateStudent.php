@@ -1,29 +1,28 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<title>Update Student</title>
-</head>
-
-<body>
 <?php
-$Id = $_GET['Id'];
-$Year=$_POST['cmbYear'];
-$Status=$_POST['cmbStatus'];
-$Sem=$_POST['cmbSem'];
-$Department=$_POST['cmbDep'];
+session_start();
+if(!isset($_SESSION['username'])){
+    header("Location:../index-modern.php");
+    exit();
+}
 
-// Establish Connection with MYSQL
+$Id = $_GET['Id'];
+$Year = $_POST['cmbYear'];
+$Status = $_POST['cmbStatus'];
+$Sem = $_POST['cmbSem'];
+$Department = $_POST['cmbDep'];
+
 $con = new mysqli("localhost","root","","oes");
-// Specify the query to Update Record
-$stmt = $con->prepare("Update student set dept_name=?, Status=?, year=?, semister=? where Id=?");
+
+if ($con->connect_error) {
+    die("Connection failed: " . $con->connect_error);
+}
+
+$stmt = $con->prepare("UPDATE student SET dept_name=?, Status=?, year=?, semister=? WHERE Id=?");
 $stmt->bind_param("sssis", $Department, $Status, $Year, $Sem, $Id);
-// execute query
 $stmt->execute();
 $stmt->close();
-// Close The Connection
 $con->close();
-echo '<script type="text/javascript">alert("Student Updated Successfully");window.location=\'Student.php\';</script>';
+
+header("Location: Student-modern.php?msg=updated");
+exit();
 ?>
-</body>
-</html>

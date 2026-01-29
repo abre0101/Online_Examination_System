@@ -1,32 +1,26 @@
-
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<title>Untitled Document</title>
-</head>
-
-<body>
 <?php
-	$Id=$_GET['ID'];
-$Status=$_POST['cmbStatus'];
-$Department=$_POST['cmbDep'];
+session_start();
+if(!isset($_SESSION['username'])){
+    header("Location:../index-modern.php");
+    exit();
+}
 
+$Id = $_GET['ID'];
+$Status = $_POST['cmbStatus'];
+$Department = $_POST['cmbDep'];
 
-	// Establish Connection with MYSQL
-	$con = new mysqli("localhost","root");
-	// Select Database
-	$con->select_db("oes");
-	// Specify the query to Insert Record
-    //$sql = "Update exam_committee set dept_name='".$Department."',Status='".$Status."' where EC_ID='".$Id."'";
-    $sql = "UPDATE exam_committee set dept_name='".$Department."',Status='".$Status."'  where EC_ID='".$Id."'";
+$con = new mysqli("localhost","root","","oes");
 
-	// execute query
-	$con->query ($sql);
-	// Close The Connection
-	$con->close ();
+if ($con->connect_error) {
+    die("Connection failed: " . $con->connect_error);
+}
 
-echo '<script type="text/javascript">alert("Exam Committee Updated Succesfully");window.location=\'ECommittee.php\';</script>';
+$stmt = $con->prepare("UPDATE exam_committee SET dept_name=?, Status=? WHERE EC_ID=?");
+$stmt->bind_param("sss", $Department, $Status, $Id);
+$stmt->execute();
+$stmt->close();
+$con->close();
+
+header("Location: ECommittee.php?msg=updated");
+exit();
 ?>
-</body>
-</html>

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Institute Login - Debre Markos University Health Campus</title>
-    <link href="assets/css/modern-v2.css" rel="stylesheet">
+    <link href="../assets/css/modern-v2.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -13,24 +13,23 @@
         <div class="header-top">
             <div class="container">
                 <div class="university-info">
-                    <img src="images/logo1.png" alt="Debre Markos University Health Campus" class="university-logo" onerror="this.style.display='none'">
+                    <img src="../images/logo1.png" alt="Debre Markos University Health Campus" class="university-logo" onerror="this.style.display='none'">
                     <div class="university-name">
                         <h1>Debre Markos University Health Campus</h1>
                         <p>Online Examination System</p>
                     </div>
                 </div>
                 <div class="header-actions">
-                    <a href="index-modern.php" class="btn btn-secondary btn-sm">Student Login</a>
+                    <a href="../index-modern.php" class="btn btn-secondary btn-sm">Student Login</a>
                 </div>
             </div>
         </div>
         <nav class="main-nav">
             <div class="container">
                 <ul class="nav-menu">
-                    <li><a href="index-modern.php">Home</a></li>
-                    <li><a href="AboutUs-modern.php">About Us</a></li>
-                    <li><a href="Shedule-modern.php">Schedule</a></li>
-                    <li><a href="Help-modern.php">Help</a></li>
+                    <li><a href="../index-modern.php">Home</a></li>
+                    <li><a href="../AboutUs-modern.php">About Us</a></li>
+                    <li><a href="../Help-modern.php">Help</a></li>
                 </ul>
             </div>
         </nav>

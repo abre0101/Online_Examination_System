@@ -1,177 +1,367 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+<?php
+session_start();
+if(isset($_SESSION['username'])){
+?>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
-<link href="style1.css" rel="stylesheet" type="text/css" />
-<title>SUOES Admin College management</title>
-<style type="text/css">
-
-    #fac{
-        float:left;
-  width:550px;
-  margin-left:10px;
-  padding: 0px 10px 30px 0px;
-  display:inline;
-    }
-
-.style1 {font-size: small}
-.style12 {font-size: small; font-weight: bold; }
-.style3 {font-family: Verdana, Arial, Helvetica, sans-serif;
-	font-size: small;
-	font-weight: bold;
-	color: #000000;
-}
-.style4 {	font-size: small;
-	font-weight: bold;
-	color: #FFFFFF;
-}
-.style5 {color: #FFFFFF}
-.style6 {color: #000000}
-.style9 {font-family: Verdana, Arial, Helvetica, sans-serif}
-
-</style>
-<script src="../SpryAssets/SpryValidationTextField.js" type="text/javascript"></script>
-<script src="../SpryAssets/SpryTabbedPanels.js" type="text/javascript"></script>
-<link href="../SpryAssets/SpryValidationTextField.css" rel="stylesheet" type="text/css" />
-<link href="../SpryAssets/SpryTabbedPanels.css" rel="stylesheet" type="text/css" />
-<style type="text/css">
-<!--
-.style15 {font-size: 10pt}
--->
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>College Management - Admin Dashboard</title>
+    <link href="../assets/css/modern-v2.css?v=<?php echo time(); ?>" rel="stylesheet">
+    <link href="../assets/css/admin-modern-v2.css?v=<?php echo time(); ?>" rel="stylesheet">
+    <link href="../assets/css/admin-sidebar.css?v=<?php echo time(); ?>" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        .tabs-container {
+            background: white;
+            border-radius: var(--radius-lg);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .tabs-header {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 3px solid #e0e0e0;
+        }
+        
+        .tab-btn {
+            flex: 1;
+            padding: 1.25rem 2rem;
+            background: transparent;
+            border: none;
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -3px;
+        }
+        
+        .tab-btn:hover {
+            background: rgba(0, 51, 102, 0.05);
+            color: var(--primary-color);
+        }
+        
+        .tab-btn.active {
+            background: white;
+            color: var(--primary-color);
+            border-bottom-color: var(--secondary-color);
+            font-weight: 700;
+        }
+        
+        .tab-content {
+            display: none;
+            padding: 2rem;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            font-size: 1rem;
+        }
+        
+        .form-group input[type="text"] {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: var(--radius-md);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .form-group input[type="text"]:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(0, 51, 102, 0.1);
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        
+        .data-table thead {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+        }
+        
+        .data-table th {
+            padding: 1rem;
+            text-align: left;
+            color: white;
+            font-weight: 700;
+            font-size: 1rem;
+        }
+        
+        .data-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 0.95rem;
+        }
+        
+        .data-table tbody tr {
+            transition: all 0.3s ease;
+        }
+        
+        .data-table tbody tr:hover {
+            background: #f8f9fa;
+            transform: scale(1.01);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .action-link {
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-md);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-block;
+            margin-right: 0.5rem;
+        }
+        
+        .action-link.edit {
+            background: #28a745;
+            color: white;
+        }
+        
+        .action-link.edit:hover {
+            background: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+        }
+        
+        .action-link.delete {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .action-link.delete:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+        }
+    </style>
 </head>
+<body class="admin-layout">
+    <!-- Left Sidebar -->
+    <aside class="admin-sidebar" id="adminSidebar">
+        <div class="sidebar-header">
+            <img src="../images/logo1.png" alt="Logo" class="sidebar-logo" onerror="this.style.display='none'">
+            <h2 class="sidebar-title">Admin Panel</h2>
+            <p class="sidebar-subtitle">Debre Markos University</p>
+            <button class="sidebar-toggle-btn" onclick="toggleSidebarMinimize()" title="Toggle Sidebar">
+                <span id="toggleIcon">◀</span>
+            </button>
+        </div>
 
-<body>
-<div id="container">
-<div id="header">
-  </div>
-  <div id="content">
-    
-    <?php
-    include "left_head.php";
-    ?>
-		<div id="left">
-      <div id="fac">
-                    <h1>Welcome To <i>College Management</i> Page</h1>
-			
-	        <div id="TabbedPanels1" class="TabbedPanels">
-              <ul class="TabbedPanelsTabGroup">
-                <li class="TabbedPanelsTab style1" tabindex="0"><span class="style1">Create New College</span></li>
-                <li class="TabbedPanelsTab style15" tabindex="0">Display College</li>
-              </ul>
-	          <div class="TabbedPanelsContentGroup">
-                <div class="TabbedPanelsContent">
-                  <table width="100%" border="0" cellspacing="0" cellpadding="0">
-                    <tr>
-                      <td>&nbsp;</td>
-                    </tr>
-                    <tr>
-                      <td><form id="form1" name="form1" method="post" action="InsertFaculty.php">
-                          <table width="100%" height="186" border="0" cellpadding="0" cellspacing="0">
-                            <tr>
-                              <td height="35">College ID:</td>
-                              <td><span id="sprytextfield1">
-                                <label>
-                                <input type="text" name="txtID" id="txtID" />
-                                </label>
-                                <span class="textfieldRequiredMsg">Please Enter College ID</span></span></td>
-                            </tr>
-                            <tr>
-                              <td height="30">College Name:</td>
-                              <td><label><span id="sprytextfield2">
-                                <input type="text" name="txtFaculty" id="txtFaculty" />
-                              <span class="textfieldRequiredMsg">Please Enter College Name!</span></span></label></td>
-                            </tr>
-                           
-                            <tr>
-                              <td>&nbsp;</td>
-                              <td><label>
-                                <input type="submit" name="button" id="button" value="Submit" />
-                              </label></td>
-                            </tr>
-                           </table>
-                      </form>
-					  </td>
-                    </tr>
-</table>
+        <nav class="sidebar-nav">
+            <a href="index-modern.php" class="sidebar-nav-item">
+                <span class="sidebar-nav-icon">📊</span>
+                <span>Dashboard</span>
+            </a>
+            <a href="Faculty.php" class="sidebar-nav-item active">
+                <span class="sidebar-nav-icon">🏛️</span>
+                <span>College</span>
+            </a>
+            <a href="Department.php" class="sidebar-nav-item">
+                <span class="sidebar-nav-icon">🏢</span>
+                <span>Department</span>
+            </a>
+            <a href="Course.php" class="sidebar-nav-item">
+                <span class="sidebar-nav-icon">📚</span>
+                <span>Course</span>
+            </a>
+            <a href="ECommittee.php" class="sidebar-nav-item">
+                <span class="sidebar-nav-icon">👥</span>
+                <span>Exam Committee</span>
+            </a>
+            <a href="Instructor.php" class="sidebar-nav-item">
+                <span class="sidebar-nav-icon">👨‍🏫</span>
+                <span>Instructor</span>
+            </a>
+            <a href="Student-modern.php" class="sidebar-nav-item">
+                <span class="sidebar-nav-icon">👨‍🎓</span>
+                <span>Student</span>
+            </a>
+            <a href="SystemSettings.php" class="sidebar-nav-item">
+                <span class="sidebar-nav-icon">⚙️</span>
+                <span>System Settings</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="sidebar-user">
+                <div class="sidebar-user-avatar">
+                    <?php echo strtoupper(substr($_SESSION['username'], 0, 1)); ?>
                 </div>
-                <div class="TabbedPanelsContent">
-                  <table width="100%" border="1" border_color="#85A157" >
-                    <tr>
-                      <th height="32" bgcolor="#85A157" class="style3"><div align="left" class="style9 style5"><strong>Id</strong></div></th>
-                      <th bgcolor="#85A157" class="style3"><div align="left" class="style9 style5"><strong>College Name</strong></div></th>
-                       
-                      <th bgcolor="#85A157" class="style3"><div align="left" class="style9 style5"><strong>Edit</strong></div></th>
-                      <th bgcolor="#85A157" class="style3"><div align="left" class="style4">Delete</div></th>
-                    </tr>
-                    <?php
-// Establish Connection with Database
- $con = new mysqli("localhost","root","","oes");
-// Select Database
-//$con->mysqli_select_db("oes");
-// Specify the query to execute
-$sql = "select * from faculty";
-// Execute query
-$result = $con->query($sql);
-
-// Loop through each records 
-while($row = $result->fetch_array())
-{
-$Id=$row['faculty_id'];
-$FacultyName=$row['faculty_name'];
-
-?>
-                    <tr>
-                      <td bgcolor="#BADFE8" class="style3"><div align="left" class="style9 style6"><strong><?php echo $Id;?></strong></div></td>
-                      <td bgcolor="#BADFE8" class="style3"><div align="left" class="style9 style6"><strong><?php echo $FacultyName;?></strong></div></td>
-                      
-                      <td bgcolor="#BADFE8" class="style3"><div align="left" class="style9 style6"><strong><a href="EditFaculty.php?FacId=<?php echo $Id;?>">Edit</a></strong></div></td>
-                      <td bgcolor="#BADFE8" class="style3"><div align="left" class="style9 style6"><strong><a href="DeleteFaculty.php?FacId=<?php echo $Id;?>">Delete</a></strong></div></td>
-                    </tr>
-                    <?php
-}
-// Retrieve Number of records returned
-$records = $result->num_rows;
-?>
-                    <tr>
-                      <td colspan="7" class="style3"><div align="left" class="style12"> </div></td>
-                    </tr>
-                    <?php
-// Close the connection
-$con->close();
-?>
-                  </table>
+                <div class="sidebar-user-info">
+                    <div class="sidebar-user-name"><?php echo $_SESSION['username']; ?></div>
+                    <div class="sidebar-user-role">Administrator</div>
                 </div>
-                <div class="TabbedPanelsContent">
-                  <table width="100%" border="0" cellspacing="0" cellpadding="0">
-                    <tr>
-                        <td><form name="form1" method="post" action="InsertFaculty.php" >
-                        <table width="100%" height="94" border="0" cellpadding="0" cellspacing="0">
-                        </table>
-                      </form></td>
-                    </tr>
-                  </table>
-                </div>
-	          </div>
-          </div>
-          <p>&nbsp;</p>
-	
-	<h1>&nbsp;</h1>
-	  </div>
-		
-		<div id="footerline"></div>
-	</div>
-	
-        <div id="footer">Copyright &copy; 2022 SU Online Examination System.  All rights reserved.&nbsp;</div>		
-</div>
-<script type="text/javascript">
-var TabbedPanels1 = new Spry.Widget.TabbedPanels("TabbedPanels1");
-var sprytextfield1 = new Spry.Widget.ValidationTextField("sprytextfield1");
-var sprytextfield2 = new Spry.Widget.ValidationTextField("sprytextfield2");
-var sprytextfield3 = new Spry.Widget.ValidationTextField("sprytextfield3");
-var sprytextfield4 = new Spry.Widget.ValidationTextField("sprytextfield4");
-var sprytextfield5 = new Spry.Widget.ValidationTextField("sprytextfield5");
+            </div>
+            <a href="Logout.php" class="btn btn-danger btn-block">
+                🚪 Logout
+            </a>
+        </div>
+    </aside>
 
-</script>
+    <!-- Main Content Area -->
+    <div class="admin-main-content">
+        <!-- Enhanced Header -->
+        <header class="admin-header">
+            <div class="header-left">
+                <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
+                <div class="header-breadcrumb">
+                    <span class="breadcrumb-item">Admin</span>
+                    <span class="breadcrumb-separator">/</span>
+                    <span class="breadcrumb-item active">College</span>
+                </div>
+            </div>
+            
+            <div class="header-center">
+                <div class="header-search">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" placeholder="Search students, courses, instructors..." class="search-input">
+                </div>
+            </div>
+            
+            <div class="header-right">
+                <div class="header-datetime">
+                    <div class="header-time" id="currentTime"></div>
+                    <div class="header-date"><?php echo date('D, M d, Y'); ?></div>
+                </div>
+                
+                <div class="header-notifications">
+                    <button class="header-icon-btn" title="Notifications">
+                        <span class="notification-icon">🔔</span>
+                        <span class="notification-badge">3</span>
+                    </button>
+                </div>
+                
+                <div class="header-profile" onclick="toggleProfileDropdown(event)">
+                    <div class="header-profile-avatar">
+                        <?php echo strtoupper(substr($_SESSION['username'], 0, 1)); ?>
+                    </div>
+                    <div class="header-profile-info">
+                        <div class="header-profile-name"><?php echo $_SESSION['username']; ?></div>
+                        <div class="header-profile-role">Administrator</div>
+                    </div>
+                    <button class="header-dropdown-btn">▼</button>
+                    
+                    <!-- Dropdown Menu -->
+                    <div class="profile-dropdown" id="profileDropdown">
+                        <a href="Profile.php" class="dropdown-item">
+                            <span class="dropdown-icon">👤</span>
+                            <span>My Profile</span>
+                        </a>
+                        <a href="EditProfile.php" class="dropdown-item">
+                            <span class="dropdown-icon">⚙️</span>
+                            <span>Settings</span>
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="Logout.php" class="dropdown-item logout">
+                            <span class="dropdown-icon">🚪</span>
+                            <span>Logout</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="admin-content">
+            <!-- Page Title -->
+            <div class="page-header">
+                <h1>🏛️ College Management</h1>
+                <p>Create and manage colleges in the system</p>
+            </div>
+
+            <!-- Tabs Container -->
+            <div class="tabs-container">
+                <div class="tabs-header">
+                    <button class="tab-btn active" onclick="switchTab(0)">➕ Create New College</button>
+                    <button class="tab-btn" onclick="switchTab(1)">📋 Display Colleges</button>
+                </div>
+
+                <!-- Tab 1: Create New College -->
+                <div class="tab-content active">
+                    <form method="post" action="InsertFaculty.php">
+                        <div class="form-group">
+                            <label for="txtID">College ID:</label>
+                            <input type="text" name="txtID" id="txtID" required placeholder="Enter College ID">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="txtFaculty">College Name:</label>
+                            <input type="text" name="txtFaculty" id="txtFaculty" required placeholder="Enter College Name">
+                        </div>
+                        
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">
+                                ✓ Submit
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Tab 2: Display Colleges -->
+                <div class="tab-content">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>College Name</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php
+                            $con = new mysqli("localhost","root","","oes");
+                            $sql = "select * from faculty";
+                            $result = $con->query($sql);
+
+                            while($row = $result->fetch_array())
+                            {
+                                $Id=$row['faculty_id'];
+                                $FacultyName=$row['faculty_name'];
+                            ?>
+                            <tr>
+                                <td><strong><?php echo $Id;?></strong></td>
+                                <td><?php echo $FacultyName;?></td>
+                                <td>
+                                    <a href="EditFaculty.php?FacId=<?php echo $Id;?>" class="action-link edit">✏️ Edit</a>
+                                    <a href="DeleteFaculty.php?FacId=<?php echo $Id;?>" class="action-link delete" onclick="return confirm('Are you sure you want to delete this college?')">🗑️ Delete</a>
+                                </td>
+                            </tr>
+                            <?php
+                            }
+                            $con->close();
+                            ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../assets/js/admin-sidebar.js?v=<?php echo time(); ?>"></script>
 </body>
 </html>
+<?php 
+} else {
+    header("Location:../index-modern.php");
+    exit();
+}
+?>

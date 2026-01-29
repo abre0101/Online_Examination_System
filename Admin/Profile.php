@@ -1,99 +1,229 @@
 <?php
-if (!isset($_SESSION)) 
-{
-  session_start();
-  
+session_start();
+if(!isset($_SESSION['username'])){
+    header("Location:../index-modern.php");
+    exit();
 }
-?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
-<link href="style1.css" rel="stylesheet" type="text/css" />
-<title>AMU OES Student</title>
-<style type="text/css">
- #dep{
-        float:left;
-  width:550px;
-  margin-left:10px;
-  padding: 0px 10px 30px 0px;
-  display:inline;
-    }</style>
 
-</head>
+// Database connection
+$con = new mysqli("localhost","root","","oes");
+if ($con->connect_error) {
+    die("Connection failed: " . $con->connect_error);
+}
 
-<body>
-<div id="container">
-<div id="header">
-  </div>
-  <div id="content">
-    
-    <?php
-    include "left_head.php";
-    ?>
-    <div id="left">
-      <div id="dep">
-          <h1>&nbsp;</h1>
-      <h1>Welcome <?php echo $_SESSION['username'];?></h1>
-			<?php
-$Id=$_SESSION['ID'];
-// Establish Connection with Database
-$con = new mysqli("localhost","root");
-  // Select Database
-  $con->select_db("oes");
-// Specify the query to execute
+$Id = $_SESSION['ID'];
 $sql = "select * from admin where Admin_ID='".$Id."'";
-// Execute query
 $result = $con->query($sql);
-// Loop through each records 
 $row = $result->fetch_array();
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Profile - Dashboard</title>
+    <link href="../assets/css/modern-v2.css" rel="stylesheet">
+    <link href="../assets/css/admin-modern-v2.css" rel="stylesheet">
+    <link href="../assets/css/admin-sidebar.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        .page-header {
+            text-align: center;
+        }
+        
+        .profile-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .profile-card {
+            background: white;
+            border-radius: var(--radius-lg);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .profile-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            padding: 2rem;
+            text-align: center;
+            color: white;
+        }
+        
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--secondary-color) 0%, #d4af37 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            font-weight: 900;
+            color: var(--primary-dark);
+            margin: 0 auto 1rem;
+            border: 5px solid white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        
+        .profile-name {
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin: 0;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .profile-role {
+            font-size: 1.1rem;
+            opacity: 0.95;
+            margin-top: 0.5rem;
+            color: var(--secondary-color);
+            font-weight: 600;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+        
+        .profile-body {
+            padding: 2rem;
+        }
+        
+        .profile-section {
+            margin-bottom: 2rem;
+        }
+        
+        .profile-section h3 {
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .profile-info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+        }
+        
+        .profile-info-item {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .profile-info-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .profile-info-value {
+            font-size: 1.1rem;
+            color: var(--primary-color);
+            font-weight: 700;
+            padding: 0.75rem;
+            background: #f8f9fa;
+            border-radius: var(--radius-md);
+            border-left: 4px solid var(--secondary-color);
+        }
+        
+        .profile-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 2px solid #e0e0e0;
+        }
+        
+        @media (max-width: 768px) {
+            .profile-info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body class="admin-layout">
+    <?php include 'sidebar-component.php'; ?>
 
-?>   
-                      <table width="100%" border="0">
-                        <tr>
-                          <td height="32"><span class="style8"><strong>Admin Id</strong></span></td>
-                          <td><?php echo $row['Admin_ID'];?></td>
+    <div class="admin-main-content">
+        <?php include 'header-component.php'; ?>
 
-                        </tr>
-                        <tr>
-                          <td height="36"><span class="style8"><strong>Admin Name:</strong></span></td>
-                          <td><?php echo $row['Admin_Name'];?></td>
-                        </tr>
+        <div class="admin-content">
+            <div class="page-header">
+                <h1>👤 My Profile</h1>
+                <p>View and manage your account information</p>
+            </div>
+
+            <div class="profile-container">
+                <div class="profile-card">
+                    <div class="profile-header">
+                        <div class="profile-avatar">
+                            <?php echo strtoupper(substr($row['Admin_Name'], 0, 1)); ?>
+                        </div>
+                        <h2 class="profile-name"><?php echo $row['Admin_Name']; ?></h2>
+                        <p class="profile-role">System Administrator</p>
+                    </div>
+                    
+                    <div class="profile-body">
+                        <div class="profile-section">
+                            <h3>📋 Account Information</h3>
+                            <div class="profile-info-grid">
+                                <div class="profile-info-item">
+                                    <span class="profile-info-label">Admin ID</span>
+                                    <div class="profile-info-value"><?php echo $row['Admin_ID']; ?></div>
+                                </div>
+                                
+                                <div class="profile-info-item">
+                                    <span class="profile-info-label">Full Name</span>
+                                    <div class="profile-info-value"><?php echo $row['Admin_Name']; ?></div>
+                                </div>
+                                
+                                <div class="profile-info-item">
+                                    <span class="profile-info-label">Email Address</span>
+                                    <div class="profile-info-value"><?php echo $row['email']; ?></div>
+                                </div>
+                                
+                                <div class="profile-info-item">
+                                    <span class="profile-info-label">Username</span>
+                                    <div class="profile-info-value"><?php echo $row['username']; ?></div>
+                                </div>
+                            </div>
+                        </div>
                         
-                          <tr>
-                          <td height="33"><strong>Email:</strong></td>
-                          <td><?php echo $row['email'];?></td>
-                        </tr>
-                        <tr>
-                          <td height="31"><strong>User Name:</strong></td>
-                          <td><?php echo $row['username'];?></td>
-                        </tr>
-                      <tr>
-                          <td height="31"><strong>Password:</strong></td>
-                          <td><?php echo $row['password'];?></td>
-                        </tr>
-                        
-                        <tr>
-                          <td height="28"></td>
-                          <td><a href="EditProfile.php?Id=<?php echo $Id;?>"><strong>Edit Profile</strong></a></td>
-                        </tr>
-                      </table>
-                  
-                  <?php
-// Close the connection
-$con->close();
-?></td>
-              </tr>
-            </table>
-	<p>&nbsp;</p>
-	
-	<h1>&nbsp;</h1>
-	  </div>
-		
-		<div id="footerline"></div>
-	</div>
-	
-	<div id="footer">Copyright &copy; 2022 SU Online Examination System.</br> All rights reserved.&nbsp;</div>	
-</div>
+                        <div class="profile-actions">
+                            <a href="EditProfile.php?Id=<?php echo $Id;?>" class="btn btn-primary">
+                                ✏️ Edit Profile
+                            </a>
+                            <a href="index-modern.php" class="btn btn-secondary">
+                                ← Back to Dashboard
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../assets/js/admin-sidebar.js"></script>
+    <script>
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('en-US', { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: true 
+            });
+            const timeElement = document.getElementById('currentTime');
+            if (timeElement) {
+                timeElement.textContent = timeString;
+            }
+        }
+        updateTime();
+        setInterval(updateTime, 1000);
+    </script>
 </body>
 </html>
+<?php 
+$con->close();
+?>

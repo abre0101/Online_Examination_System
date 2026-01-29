@@ -8,54 +8,139 @@ if(isset($_SESSION['username'])){
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - Debre Markos University Health Campus</title>
-    <link href="../assets/css/modern-v2.css" rel="stylesheet">
-    <link href="../assets/css/admin-modern-v2.css" rel="stylesheet">
+    <link href="../assets/css/modern-v2.css?v=<?php echo time(); ?>" rel="stylesheet">
+    <link href="../assets/css/admin-modern-v2.css?v=<?php echo time(); ?>" rel="stylesheet">
+    <link href="../assets/css/admin-sidebar.css?v=<?php echo time(); ?>" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
-<body>
-    <!-- Header -->
-    <header class="modern-header">
-        <div class="header-top">
-            <div class="container">
-                <div class="university-info">
-                    <img src="../images/logo1.png" alt="Debre Markos University Health Campus" class="university-logo" onerror="this.style.display='none'">
-                    <div class="university-name">
-                        <h1>Debre Markos University Health Campus</h1>
-                        <p>Online Examination System - Admin Panel</p>
-                    </div>
-                </div>
-                <div class="header-actions">
-                    <div class="user-info">
-                        <div class="user-avatar">
-                            <?php echo strtoupper(substr($_SESSION['username'], 0, 1)); ?>
-                        </div>
-                        <div>
-                            <div style="font-weight: 600;"><?php echo $_SESSION['username']; ?></div>
-                            <div style="font-size: 0.75rem; opacity: 0.8;">Administrator</div>
-                        </div>
-                    </div>
-                    <a href="Logout.php" class="btn btn-danger btn-sm">Logout</a>
-                </div>
-            </div>
+<body class="admin-layout">
+<body class="admin-layout">
+    <!-- Left Sidebar -->
+    <aside class="admin-sidebar" id="adminSidebar">
+        <div class="sidebar-header">
+            <img src="../images/logo1.png" alt="Logo" class="sidebar-logo" onerror="this.style.display='none'">
+            <h2 class="sidebar-title">Admin Panel</h2>
+            <p class="sidebar-subtitle">Debre Markos University</p>
+            <button class="sidebar-toggle-btn" onclick="toggleSidebarMinimize()" title="Toggle Sidebar">
+                <span id="toggleIcon">◀</span>
+            </button>
         </div>
-        <nav class="main-nav">
-            <div class="container">
-                <ul class="nav-menu">
-                    <li><a href="index-modern.php" class="active">Dashboard</a></li>
-                    <li><a href="Faculty.php">College</a></li>
-                    <li><a href="Department.php">Department</a></li>
-                    <li><a href="Course.php">Course</a></li>
-                    <li><a href="ECommittee.php">Exam Committee</a></li>
-                    <li><a href="Instructor.php">Instructor</a></li>
-                    <li><a href="Student.php">Student</a></li>
-                </ul>
-            </div>
-        </nav>
-    </header>
 
-    <!-- Main Content -->
-    <main class="main-content">
-        <div class="container">
+        <nav class="sidebar-nav">
+            <a href="index-modern.php" class="sidebar-nav-item active">
+                <span class="sidebar-nav-icon">📊</span>
+                <span>Dashboard</span>
+            </a>
+            <a href="Faculty.php" class="sidebar-nav-item">
+                <span class="sidebar-nav-icon">🏛️</span>
+                <span>College</span>
+            </a>
+            <a href="Department.php" class="sidebar-nav-item">
+                <span class="sidebar-nav-icon">🏢</span>
+                <span>Department</span>
+            </a>
+            <a href="Course.php" class="sidebar-nav-item">
+                <span class="sidebar-nav-icon">📚</span>
+                <span>Course</span>
+            </a>
+            <a href="ECommittee.php" class="sidebar-nav-item">
+                <span class="sidebar-nav-icon">👥</span>
+                <span>Exam Committee</span>
+            </a>
+            <a href="Instructor.php" class="sidebar-nav-item">
+                <span class="sidebar-nav-icon">👨‍🏫</span>
+                <span>Instructor</span>
+            </a>
+            <a href="Student-modern.php" class="sidebar-nav-item">
+                <span class="sidebar-nav-icon">👨‍🎓</span>
+                <span>Student</span>
+            </a>
+            <a href="SystemSettings.php" class="sidebar-nav-item">
+                <span class="sidebar-nav-icon">⚙️</span>
+                <span>System Settings</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="sidebar-user">
+                <div class="sidebar-user-avatar">
+                    <?php echo strtoupper(substr($_SESSION['username'], 0, 1)); ?>
+                </div>
+                <div class="sidebar-user-info">
+                    <div class="sidebar-user-name"><?php echo $_SESSION['username']; ?></div>
+                    <div class="sidebar-user-role">Administrator</div>
+                </div>
+            </div>
+            <a href="Logout.php" class="btn btn-danger btn-block">
+                🚪 Logout
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="admin-main-content">
+        <!-- Enhanced Header -->
+        <header class="admin-header">
+            <div class="header-left">
+                <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
+                <div class="header-breadcrumb">
+                    <span class="breadcrumb-item">Admin</span>
+                    <span class="breadcrumb-separator">/</span>
+                    <span class="breadcrumb-item active">Dashboard</span>
+                </div>
+            </div>
+            
+            <div class="header-center">
+                <div class="header-search">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" placeholder="Search students, courses, instructors..." class="search-input">
+                </div>
+            </div>
+            
+            <div class="header-right">
+                <div class="header-datetime">
+                    <div class="header-time" id="currentTime"></div>
+                    <div class="header-date"><?php echo date('D, M d, Y'); ?></div>
+                </div>
+                
+                <div class="header-notifications">
+                    <button class="header-icon-btn" title="Notifications">
+                        <span class="notification-icon">🔔</span>
+                        <span class="notification-badge">3</span>
+                    </button>
+                </div>
+                
+                <div class="header-profile" onclick="toggleProfileDropdown(event)">
+                    <div class="header-profile-avatar">
+                        <?php echo strtoupper(substr($_SESSION['username'], 0, 1)); ?>
+                    </div>
+                    <div class="header-profile-info">
+                        <div class="header-profile-name"><?php echo $_SESSION['username']; ?></div>
+                        <div class="header-profile-role">Administrator</div>
+                    </div>
+                    <button class="header-dropdown-btn">▼</button>
+                    
+                    <!-- Dropdown Menu -->
+                    <div class="profile-dropdown" id="profileDropdown">
+                        <a href="Profile.php" class="dropdown-item">
+                            <span class="dropdown-icon">👤</span>
+                            <span>My Profile</span>
+                        </a>
+                        <a href="EditProfile.php" class="dropdown-item">
+                            <span class="dropdown-icon">⚙️</span>
+                            <span>Settings</span>
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="Logout.php" class="dropdown-item logout">
+                            <span class="dropdown-icon">🚪</span>
+                            <span>Logout</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="admin-content">
             <!-- Welcome Section -->
             <div class="welcome-banner">
                 <div class="welcome-content">
@@ -262,6 +347,8 @@ if(isset($_SESSION['username'])){
             </div>
         </div>
     </footer>
+
+    <script src="../assets/js/admin-sidebar.js?v=<?php echo time(); ?>"></script>
 </body>
 </html>
 <?php 

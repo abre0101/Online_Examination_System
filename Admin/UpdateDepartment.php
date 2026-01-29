@@ -1,29 +1,32 @@
-
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<title>Untitled Document</title>
-</head>
-
-<body>
 <?php
-$Id=$_GET['ID'];
+session_start();
+if(!isset($_SESSION['username'])){
+    header("Location:../index-modern.php");
+    exit();
+}
 
-$Name=$_POST['txtID'];
+$Id = $_GET['ID'];
+$Name = $_POST['txtID'];
+$Faculty = isset($_POST['cmbFaculty']) ? $_POST['cmbFaculty'] : '';
 
-// Establish Connection with MYSQL
-$con = new mysqli("localhost","root");
-// Select Database
-$con->select_db("oes");
-// Specify the query to Update Record
-$sql = "UPDATE department set dept_name='".$Name."'  where deptno='".$Id."'";
+$con = new mysqli("localhost","root","","oes");
 
-// Execute query
-$con->query($sql);
-// Close The Connection
+if ($con->connect_error) {
+    die("Connection failed: " . $con->connect_error);
+}
+
+if($Faculty) {
+    $stmt = $con->prepare("UPDATE department SET dept_name=?, faculty_name=? WHERE deptno=?");
+    $stmt->bind_param("sss", $Name, $Faculty, $Id);
+} else {
+    $stmt = $con->prepare("UPDATE department SET dept_name=? WHERE deptno=?");
+    $stmt->bind_param("ss", $Name, $Id);
+}
+
+$stmt->execute();
+$stmt->close();
 $con->close();
-echo '<script type="text/javascript">alert("Deprtment Updated Succesfully");window.location=\'Department.php\';</script>';
+
+header("Location: Department.php?msg=updated");
+exit();
 ?>
-</body>
-</html>

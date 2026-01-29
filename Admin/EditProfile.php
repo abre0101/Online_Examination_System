@@ -1,127 +1,237 @@
 <?php
-if (!isset($_SESSION)) 
-{
-  session_start();  
+session_start();
+if(!isset($_SESSION['username'])){
+    header("Location:../index-modern.php");
+    exit();
+}
+
+// Database connection
+$con = new mysqli("localhost","root","","oes");
+if ($con->connect_error) {
+    die("Connection failed: " . $con->connect_error);
+}
+
+$Id = $_GET['Id'];
+$sql = "select * from admin where Admin_ID='".$Id."'";
+$result = $con->query($sql);
+
+if($row = $result->fetch_array()) {
+    $Admin_ID = $row['Admin_ID'];
+    $Admin_Name = $row['Admin_Name'];
+    $Email = $row['email'];
+    $UserName = $row['username'];
+    $Password = $row['password'];
+} else {
+    header("Location: Profile.php");
+    exit();
 }
 ?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
-<link href="style1.css" rel="stylesheet" type="text/css" />
-<title>AMU OES Student Profile</title>
-<script src="../SpryAssets/SpryValidationTextField.js" type="text/javascript"></script>
-<link href="../SpryAssets/SpryValidationTextField.css" rel="stylesheet" type="text/css" />
-
-<style type="text/css">
- #dep{
-        float:left;
-  width:550px;
-  margin-left:10px;
-  padding: 0px 10px 30px 0px;
-  display:inline;
-    }</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Profile - Admin Dashboard</title>
+    <link href="../assets/css/modern-v2.css" rel="stylesheet">
+    <link href="../assets/css/admin-modern-v2.css" rel="stylesheet">
+    <link href="../assets/css/admin-sidebar.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        .page-header {
+            text-align: center;
+        }
+        
+        .edit-container {
+            background: white;
+            border-radius: var(--radius-lg);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        
+        .info-section {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: var(--radius-md);
+            margin-bottom: 2rem;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .info-section h3 {
+            margin: 0 0 1rem 0;
+            color: var(--primary-color);
+            font-size: 1.1rem;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+        
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .info-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+        
+        .info-value {
+            font-size: 1rem;
+            color: var(--primary-color);
+            font-weight: 700;
+        }
+        
+        .form-section h3 {
+            margin: 0 0 1.5rem 0;
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            font-size: 1rem;
+        }
+        
+        .form-group input[type="text"],
+        .form-group input[type="password"] {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: var(--radius-md);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(0, 51, 102, 0.1);
+        }
+        
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 2px solid #e0e0e0;
+        }
+        
+        @media (max-width: 768px) {
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
+<body class="admin-layout">
+    <?php include 'sidebar-component.php'; ?>
 
-<body>
-<div id="container">
-<div id="header">
-  </div>
-  <div id="content">
-    
-    <?php
-    include "left_head.php";
-    ?>
-    <div id="left">
-      <div id="dep">
-          <h1>&nbsp;</h1>
-			<h1>Welcome <?php echo $_SESSION['username'];?></h1>
-			<?php
-$Id=$_GET['Id'];
-// Establish Connection with Database
-$con = new mysqli("localhost","root");
-	// Select Database
-	$con->select_db("oes");
-	// Specify the query to Insert Record
-    $sql = "select * from admin where admin.Admin_ID='".$Id."'";
-	// execute query
-    $result = $con->query($sql);
-// Loop through each records 
-  while($row = $result->fetch_array())
-{
-$Id=$row['Admin_ID'];
-$Name=$row['Admin_Name'];
-$Email=$row['email'];
+    <div class="admin-main-content">
+        <?php include 'header-component.php'; ?>
 
-$UserName =$row['username'];
-$Password=$row['password'];
+        <div class="admin-content">
+            <div class="page-header">
+                <h1>✏️ Edit Profile</h1>
+                <p>Update your account credentials</p>
+            </div>
 
-}
-?> <br/>
-          <form method="post" action="UpdateProfile.php?Id=<?php echo $Id;?>">
-                      <table width="100%" border="0">
-                        <tr>
-                          <td height="32"><span class="style8"><strong>Admin Id</strong></span></td>
-                          <td><?php echo $Id;?></td>
-                        </tr>
-                        <tr>
-                          <td height="36"><span class="style8"><strong> Admin Name  :</strong></span></td>
-                          <td><?php echo $Name;?></td>
-                        </tr>
-                           
-                           <tr>
-                          <td height="36"><span class="style8"><strong>   Email  :</strong></span></td>
-                          <td><?php echo $Email;?></td>
-                        </tr>
-                         
-                        <tr>
-                          <td height="28"><strong>Change username:</strong></td>
-                          <td><span id="sprytextfield4">
-                            <label>
-                            <input type="text" name="txtUser" id="txtUser"  />
-                            </label>
-                          <span class="textfieldRequiredMsg">A value is required.</span></span></td>
-                        </tr>
-                        <tr>
-                          <td height="28"><strong>Change Password:</strong></td>
-                          <td><span id="sprytextfield5">
-                            <label>
-                            <input type="password" name="txtPass" id="txtPass"  />
-                            </label>
-                          <span class="textfieldRequiredMsg">A value is required.</span></span></td>
-                        </tr>
-                        <tr>
-                          <td height="28"></td>
-                          <td><label>
-                            <input type="submit" name="button" id="button" value="Update Profile" />
-                          </label></td>
-                        </tr>
-                      </table>
-          </form>
-                  <?php
-// Close the connection
-$con->close();
-?></td>
-              </tr>
-            </table>
-	<p>&nbsp;</p>
-	
-	<h1>&nbsp;</h1>
-	  </div>
-		
-		<div id="footerline"></div>
-	</div>
-	
-	<div id="footer">Copyright &copy; 2021 AMU Online Examination System. All rights reserved.&nbsp;</div>	
-</div>
-<script type="text/javascript">
-<!--
-var sprytextfield1 = new Spry.Widget.ValidationTextField("sprytextfield1");
-var sprytextfield2 = new Spry.Widget.ValidationTextField("sprytextfield2");
-var sprytextfield3 = new Spry.Widget.ValidationTextField("sprytextfield3");
-var sprytextfield4 = new Spry.Widget.ValidationTextField("sprytextfield4");
-var sprytextfield5 = new Spry.Widget.ValidationTextField("sprytextfield5");
-//-->
-</script>
+            <div class="edit-container">
+                <div class="info-section">
+                    <h3>📋 Current Information</h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-label">Admin ID</span>
+                            <span class="info-value"><?php echo $Admin_ID; ?></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Full Name</span>
+                            <span class="info-value"><?php echo $Admin_Name; ?></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Email</span>
+                            <span class="info-value"><?php echo $Email; ?></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Current Username</span>
+                            <span class="info-value"><?php echo $UserName; ?></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3>🔄 Update Credentials</h3>
+                    <form method="post" action="UpdateProfile.php?Id=<?php echo $Admin_ID;?>">
+                        <div class="form-group">
+                            <label for="txtUser">New Username:</label>
+                            <input type="text" name="txtUser" id="txtUser" required placeholder="Enter new username" value="<?php echo $UserName; ?>">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="txtPass">New Password:</label>
+                            <input type="password" name="txtPass" id="txtPass" required placeholder="Enter new password">
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">
+                                ✓ Update Profile
+                            </button>
+                            <a href="Profile.php" class="btn btn-secondary">
+                                ← Back to Profile
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('en-US', { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: true 
+            });
+            document.getElementById('currentTime').textContent = timeString;
+        }
+        updateTime();
+        setInterval(updateTime, 1000);
+
+        function toggleSidebar() {
+            document.querySelector('.admin-sidebar').classList.toggle('open');
+        }
+
+        document.addEventListener('click', function(event) {
+            const sidebar = document.querySelector('.admin-sidebar');
+            const menuBtn = document.querySelector('.mobile-menu-btn');
+            
+            if (window.innerWidth <= 1024) {
+                if (!sidebar.contains(event.target) && !menuBtn.contains(event.target)) {
+                    sidebar.classList.remove('open');
+                }
+            }
+        });
+    </script>
 </body>
 </html>
+<?php 
+$con->close();
+?>

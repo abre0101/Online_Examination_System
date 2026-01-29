@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Forgot Password - Debre Markos University Health Campus</title>
-    <link href="assets/css/modern-v2.css" rel="stylesheet">
+    <link href="../assets/css/modern-v2.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -27,10 +27,9 @@
         <nav class="main-nav">
             <div class="container">
                 <ul class="nav-menu">
-                    <li><a href="index-modern.php">Home</a></li>
-                    <li><a href="AboutUs-modern.php">About Us</a></li>
-                    <li><a href="Shedule-modern.php">Schedule</a></li>
-                    <li><a href="Help-modern.php">Help</a></li>
+                    <li><a href="../index-modern.php">Home</a></li>
+                    <li><a href="../AboutUs-modern.php">About Us</a></li>
+                    <li><a href="../Help-modern.php">Help</a></li>
                 </ul>
             </div>
         </nav>
@@ -78,7 +77,7 @@
 
                             <div style="text-align: center; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 2px solid var(--border-color);">
                                 <p style="color: var(--text-secondary); margin: 0;">
-                                    Remember your password? <a href="index-modern.php" style="color: var(--primary-color); font-weight: 600;">Go to login page?</a>
+                                    Remember your password? <a href="student-login.php" style="color: var(--primary-color); font-weight: 600;">Go to login page</a>
                                 </p>
                             </div>
                         </form>

@@ -1,26 +1,29 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<title>Update Course</title>
-</head>
-
-<body>
 <?php
-$Id=$_GET['txtDeptID'];
+session_start();
+if(!isset($_SESSION['username'])){
+    header("Location:../index-modern.php");
+    exit();
+}
 
-$Name=$_POST['txtCourseName'];
+$Id = $_POST['txtDeptID'];
+$Name = $_POST['txtCourseName'];
+$Credit = $_POST['txtCredit'];
+$Sem = $_POST['cmbSem'];
+$Dept = $_POST['cmbDept'];
+$Inst = $_POST['cmbInst'];
 
-// Establish Connection with MYSQL
-$con = new mysqli("localhost","root");
-// Select Database
-$con->select_db("oes");
-$sql = "UPDATE Course set Course_name='".$Name."'  where course_id='".$Id."'";
-// Execute query
-$con->query($sql);
-// Close The Connection
+$con = new mysqli("localhost","root","","oes");
+
+if ($con->connect_error) {
+    die("Connection failed: " . $con->connect_error);
+}
+
+$stmt = $con->prepare("UPDATE course SET course_name=?, credit_hr=?, semister=?, dept_name=(SELECT dept_name FROM department WHERE deptno=?), Inst_Name=(SELECT Inst_Name FROM instructor WHERE Inst_ID=?) WHERE course_id=?");
+$stmt->bind_param("ssisss", $Name, $Credit, $Sem, $Dept, $Inst, $Id);
+$stmt->execute();
+$stmt->close();
 $con->close();
-echo '<script type="text/javascript">alert("Course Updated Succesfully");window.location=\'Course.php\';</script>';
+
+header("Location: Course.php?msg=updated");
+exit();
 ?>
-</body>
-</html>

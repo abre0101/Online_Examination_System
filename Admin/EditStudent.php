@@ -1,192 +1,321 @@
-
-
 <?php
-if (isset($_SESSION))
-{
-  session_start();
-  
+session_start();
+if(!isset($_SESSION['username'])){
+    header("Location:../index-modern.php");
+    exit();
 }
-?>
-<?php require_once('../Connections/OES.php'); ?>
-<?php
-$con->select_db($database_OES);
+
+// Database connection
+$con = new mysqli("localhost","root","","oes");
+if ($con->connect_error) {
+    die("Connection failed: " . $con->connect_error);
+}
+
+// Get departments for dropdown
 $query_Recordsetd = "SELECT * From department";
 $Recordsetd = $con->query($query_Recordsetd);
 $row_Recordsetd = $Recordsetd->fetch_assoc();
 $totalRows_Recordsetd = $Recordsetd->num_rows;
-?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
-<link href="style1.css" rel="stylesheet" type="text/css" />
-<title>Edit Student</title>
-<style type="text/css">
- #dep{
-        float:left;
-  width:550px;
-  margin-left:10px;
-  padding: 0px 10px 30px 0px;
-  display:inline;
-    }</style>
-<!--
-.style10 {font-family: Verdana, Arial, Helvetica, sans-serif; font-size: small; font-weight: bold; color: #FFFFFF; }
-.style8 {font-family: Verdana, Arial, Helvetica, sans-serif; font-size: small; font-weight: bold; }
--->
-</style>
 
-<style type="text/css">
-<!--
-.style11 {color: #000000}
--->
-</style>
-<script src="../SpryAssets/SpryValidationTextField.js" type="text/javascript"></script>
-<link href="../SpryAssets/SpryValidationTextField.css" rel="stylesheet" type="text/css" />
-</head>
+// Get student data
+$Stud_ID = $_GET['Stud_ID'];
+$stmt = $con->prepare("select * from student where Id=?");
+$stmt->bind_param("s", $Stud_ID);
+$stmt->execute();
+$result = $stmt->get_result();
 
-<body>
-<div id="container">
-<div id="header">
-  </div>
-  <div id="content">
-    
-    <?php
-    include "left_head.php";
-    ?>
-    <div id="left">
-      <div id="dep">
-			<table width="100%" height="209" border="0" cellpadding="0" cellspacing="0">
-              <tr>
-                <td height="33" bgcolor="#07dddd"><span class="style10 style11">Edit Student Information</span></td>
-              </tr>
-              <tr>
-                <td><?php
-$Id=$_GET['Id'];
-// Establish Connection with Database
-    $con = new mysqli("localhost","root","","oes");
-	// Specify the query to Insert Record
-    $stmt = $con->prepare("select * from student where Id=?");
-	$stmt->bind_param("s", $Id);
-	// execute query
-	$stmt->execute();
-	$result = $stmt->get_result();
-   // Loop through each records 
-while($row = $result->fetch_array())
-{
-$Id=$row['Id'];
-$Name=$row['Name'];
-$StudDept=$row['dept_name'];
-$StudYear=$row['year'];
-$Semester=$row['semister'];
-$StudSex=$row['Sex'];
-$Email=$row['email'];
-$UserName =$row['username'];
-$Password=$row['password'];
-$Status=$row['Status'];
+if($row = $result->fetch_array()) {
+    $Id = $row['Id'];
+    $Name = $row['Name'];
+    $StudDept = $row['dept_name'];
+    $StudYear = $row['year'];
+    $Semester = $row['semister'];
+    $StudSex = $row['Sex'];
+    $Email = $row['email'];
+    $UserName = $row['username'];
+    $Password = $row['password'];
+    $Status = $row['Status'];
+} else {
+    header("Location: Student-modern.php");
+    exit();
 }
 $stmt->close();
 ?>
-                  <form method="post" action="UpdateStudent.php?Id=<?php echo $Id;?>">
-                    <table width="100%" border="0">
-                      <tr>
-                        <td height="32"><span class="style8">Student Id</span></td>
-                        <td><?php echo $Id;?></td>
-                      </tr>
-                                           
-                      <tr>
-                        <td height="31"><strong>Name:</strong></td>
-                        <td><?php echo $Name;?></td>
-                      </tr>
-                   
- <tr><td height="35">Department:</td>
-  <td><select name="cmbDep" id="cmbDept">
-                          
-<?php
-do {  
-?>
- <option value="<?php echo $row_Recordsetd['dept_name']?>"><?php echo $row_Recordsetd['dept_name']?></option>  <?php
-} while ($row_Recordsetd = $Recordsetd->fetch_assoc());
-  $rows = $Recordsetd->num_rows;
-  if($rows > 0) {
-      $Recordsetd->data_seek(0);
-    $row_Recordsetd = $Recordsetd->fetch_assoc();
-    
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Student - Admin Dashboard</title>
+    <link href="../assets/css/modern-v2.css" rel="stylesheet">
+    <link href="../assets/css/admin-modern-v2.css" rel="stylesheet">
+    <link href="../assets/css/admin-sidebar.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        .page-header {
+            text-align: center;
+        }
+        
+        .page-header h1 {
+            margin-bottom: 0.5rem;
+        }
+        
+        .page-header p {
+            margin: 0;
+        }
+        
+        .edit-container {
+            background: white;
+            border-radius: var(--radius-lg);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .info-section {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: var(--radius-md);
+            margin-bottom: 2rem;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .info-section h3 {
+            margin: 0 0 1rem 0;
+            color: var(--primary-color);
+            font-size: 1.1rem;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+        
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .info-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+        
+        .info-value {
+            font-size: 1rem;
+            color: var(--primary-color);
+            font-weight: 700;
+        }
+        
+        .form-section {
+            margin-top: 2rem;
+        }
+        
+        .form-section h3 {
+            margin: 0 0 1.5rem 0;
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            font-size: 1rem;
+        }
+        
+        .form-group select {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: var(--radius-md);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(0, 51, 102, 0.1);
+        }
+        
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 2px solid #e0e0e0;
+        }
+        
+        @media (max-width: 768px) {
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body class="admin-layout">
+    <?php include 'sidebar-component.php'; ?>
 
-  }
-?>
-                          
-                        </select></td>
-                      </tr>
-                        <tr>
-                        <td height="31"><strong>Year:</strong></td>
-                        <td><?php echo $StudYear;?></td>
-                      </tr>
-                      <tr>
-                        <td height="31"><strong>Semester:</strong></td>
-                        <td><?php echo $Semester;?></td>
-                      </tr>
-                      <tr>
-                        <td height="31"><strong>Sex:</strong></td>
-                        <td><?php echo $StudSex;?></td>
-                      </tr>
-                      
-					  <tr>
-                        <td height="34"><strong>Change Year :</strong></td>
-                        <td><label>
-                                   <select name="cmbYear" id="cmbYear">
-                                       <option>1</option>
-                                       <option>2</option>
-                                       <option>3</option>
-                                       <option>4</option>
-                                       <option>5</option>
-                                       <option>6</option>
-                                       <option>7</option>
+    <div class="admin-main-content">
+        <?php include 'header-component.php'; ?>
 
-																			
-                          </select>
-                        </label></td>
-                      </tr>
-                        <tr>
-                        <td height="34"><strong>Change Semester :</strong></td>
-                        <td><label>
-                          <select name="cmbSem" id="cmbSem">
-                            <option>1</option>
-                            <option>2</option>
-                          </select>
-                        </label></td>
-                      </tr>
-                      <tr>
-                        <td height="34"><strong>Change Status:</strong></td>
-                        <td><label>
-                          <select name="cmbStatus" id="cmbStatus">
-                            <option>Active</option>
-                            <option>InActive</option>
-                          </select>
-                        </label></td>
-                      </tr>
-                      <tr>
-                        <td></td>
-                        <td><input type="submit" name="submit" value="Update Record" /></td>
-                      </tr>
-</table>
-                  </form>
-                    <?php
-// Close the connection
-$con->close();
-?></td>
-              </tr>
-		  </table>
-			<h1>&nbsp;</h1>
-			
-	
-	  </div>
-		
-		<div id="footerline"></div>
-	</div>
+        <div class="admin-content">
+            <div class="page-header">
+                <h1>✏️ Edit Student Information</h1>
+                <p>Update student details and status</p>
+            </div>
 
-	<div id="footer">Copyright &copy; 2022 SU Online examination system .  All rights reserved.</div>	
-</div>
+            <div class="edit-container">
+                <!-- Current Information Section -->
+                <div class="info-section">
+                    <h3>📋 Current Student Information</h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-label">Student ID</span>
+                            <span class="info-value"><?php echo $Id; ?></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Student Name</span>
+                            <span class="info-value"><?php echo $Name; ?></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Gender</span>
+                            <span class="info-value"><?php echo $StudSex; ?></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Current Department</span>
+                            <span class="info-value"><?php echo $StudDept; ?></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Current Year</span>
+                            <span class="info-value"><?php echo $StudYear; ?></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Current Semester</span>
+                            <span class="info-value"><?php echo $Semester; ?></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Username</span>
+                            <span class="info-value"><?php echo $UserName; ?></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Current Status</span>
+                            <span class="info-value"><?php echo $Status; ?></span>
+                        </div>
+                    </div>
+                </div>
 
+                <!-- Edit Form Section -->
+                <div class="form-section">
+                    <h3>🔄 Update Student Information</h3>
+                    <form method="post" action="UpdateStudent.php?Id=<?php echo $Id;?>">
+                        <div class="form-group">
+                            <label for="cmbDep">Change Department:</label>
+                            <select name="cmbDep" id="cmbDep">
+                                <option value="<?php echo $StudDept; ?>"><?php echo $StudDept; ?> (Current)</option>
+                                <?php
+                                do {
+                                    if($row_Recordsetd['dept_name'] != $StudDept) {
+                                ?>
+                                <option value="<?php echo $row_Recordsetd['dept_name']?>"><?php echo $row_Recordsetd['dept_name']?></option>
+                                <?php
+                                    }
+                                } while ($row_Recordsetd = $Recordsetd->fetch_assoc());
+                                ?>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="cmbYear">Change Year:</label>
+                            <select name="cmbYear" id="cmbYear">
+                                <option value="<?php echo $StudYear; ?>"><?php echo $StudYear; ?> (Current)</option>
+                                <?php for($i = 1; $i <= 7; $i++) {
+                                    if($i != $StudYear) {
+                                        echo "<option value='$i'>$i</option>";
+                                    }
+                                } ?>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="cmbSem">Change Semester:</label>
+                            <select name="cmbSem" id="cmbSem">
+                                <option value="<?php echo $Semester; ?>"><?php echo $Semester; ?> (Current)</option>
+                                <?php 
+                                if($Semester != 1) echo "<option value='1'>1</option>";
+                                if($Semester != 2) echo "<option value='2'>2</option>";
+                                ?>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="cmbStatus">Change Status:</label>
+                            <select name="cmbStatus" id="cmbStatus">
+                                <option value="<?php echo $Status; ?>"><?php echo $Status; ?> (Current)</option>
+                                <?php 
+                                if($Status != 'Active') echo "<option value='Active'>Active</option>";
+                                if($Status != 'InActive') echo "<option value='InActive'>Inactive</option>";
+                                ?>
+                            </select>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">
+                                ✓ Update Student
+                            </button>
+                            <a href="Student-modern.php" class="btn btn-secondary">
+                                ← Back to Students
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 
+    <script>
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('en-US', { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: true 
+            });
+            document.getElementById('currentTime').textContent = timeString;
+        }
+        updateTime();
+        setInterval(updateTime, 1000);
+
+        function toggleSidebar() {
+            document.querySelector('.admin-sidebar').classList.toggle('open');
+        }
+
+        document.addEventListener('click', function(event) {
+            const sidebar = document.querySelector('.admin-sidebar');
+            const menuBtn = document.querySelector('.mobile-menu-btn');
+            
+            if (window.innerWidth <= 1024) {
+                if (!sidebar.contains(event.target) && !menuBtn.contains(event.target)) {
+                    sidebar.classList.remove('open');
+                }
+            }
+        });
+    </script>
 </body>
 </html>
+<?php 
+$con->close();
+?>

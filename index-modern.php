@@ -20,7 +20,7 @@
                     </div>
                 </div>
                 <div class="header-actions">
-                    <a href="#login" class="btn btn-primary btn-sm">Login</a>
+                    <a href="student-login.php" class="btn btn-primary btn-sm">Login</a>
                 </div>
             </div>
         </div>
@@ -67,52 +67,26 @@
                 </div>
             </section>
 
-            <!-- Login Section -->
+            <!-- Login Call-to-Action -->
             <section id="login" class="login-container">
-                <div class="login-card">
-                    <div class="login-header">
-                        <h2>Sign In</h2>
-                        <p>Login to access your account</p>
+                <div class="login-card" style="text-align: center; padding: 4rem 3rem;">
+                    <div style="font-size: 4rem; margin-bottom: 1.5rem;">🎓</div>
+                    <h2 style="font-size: 2.5rem; color: var(--primary-color); margin-bottom: 1rem;">Ready to Start?</h2>
+                    <p style="font-size: 1.25rem; color: var(--text-secondary); margin-bottom: 3rem;">
+                        Access your portal to take exams, view results, and manage your profile
+                    </p>
+                    <div style="display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap;">
+                        <a href="student-login.php" class="btn btn-success btn-lg">
+                            👨‍🎓 Student Login
+                        </a>
+                        <a href="institute-login.php" class="btn btn-primary btn-lg">
+                            👨‍💼 Institute Login
+                        </a>
                     </div>
-                    <div class="login-body">
-                        <form name="form1" method="post" action="login.php">
-                            <!-- Hidden field for user type - defaults to Student -->
-                            <input type="hidden" name="cmbType" value="Student">
-                            
-                            <div class="form-group">
-                                <label for="txtUserName">Username</label>
-                                <input type="text" 
-                                       class="form-control" 
-                                       name="txtUserName" 
-                                       id="txtUserName" 
-                                       placeholder="Enter your username"
-                                       required>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="txtPassword">Password</label>
-                                <input type="password" 
-                                       class="form-control" 
-                                       name="txtPassword" 
-                                       id="txtPassword" 
-                                       placeholder="Enter your password"
-                                       required>
-                            </div>
-
-                            <div class="form-group" style="text-align: right; margin-top: -0.5rem; margin-bottom: 1.5rem;">
-                                <a href="forgot-password.php" style="color: var(--secondary-color); font-weight: 600; font-size: 0.9rem;">Forgot Your Password?</a>
-                            </div>
-
-                            <button type="submit" name="logined" class="btn btn-primary btn-block">
-                                Login to System
-                            </button>
-
-                            <div style="text-align: center; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 2px solid var(--border-color);">
-                                <p style="color: var(--text-secondary); margin: 0;">
-                                    Go to <a href="institute-login.php" style="color: var(--primary-color); font-weight: 600;">Institutes login?</a>
-                                </p>
-                            </div>
-                        </form>
+                    <div style="margin-top: 2rem; padding-top: 2rem; border-top: 2px solid var(--border-color);">
+                        <p style="color: var(--text-secondary); margin: 0;">
+                            <a href="forgot-password.php" style="color: var(--secondary-color); font-weight: 600;">Forgot Your Password?</a>
+                        </p>
                     </div>
                 </div>
             </section>

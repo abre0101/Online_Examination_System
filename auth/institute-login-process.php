@@ -18,7 +18,7 @@ if ($num_row > 0) {
     $_SESSION['username'] = $row['username'];
     $stmt->close();
     $con->close();
-    header("location:Admin/index-modern.php");
+    header("location:../Admin/index-modern.php");
     exit();
 }
 $stmt->close();
@@ -39,7 +39,7 @@ if ($records > 0) {
     $_SESSION['Email'] = $row['email'];
     $stmt->close();
     $con->close();
-    header("location:Instructor/index.php");
+    header("location:../Instructor/index.php");
     exit();
 }
 $stmt->close();
@@ -58,7 +58,7 @@ if ($records > 0) {
     $_SESSION['Dept'] = $row['dept_name'];
     $stmt->close();
     $con->close();
-    header("location:ExamCommittee/index.php");
+    header("location:../ExamCommittee/index.php");
     exit();
 }
 $stmt->close();

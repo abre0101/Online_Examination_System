@@ -1,245 +1,288 @@
 <?php
-if (isset($_SESSION))
-{
-  session_start();
-  
+session_start();
+if(!isset($_SESSION['username'])){
+    header("Location:../index-modern.php");
+    exit();
 }
-?>
-<?php require_once('../Connections/OES.php'); ?>
-<?php
+
 $con = mysqli_connect("localhost","root","","oes");
 $query_Recordsetd = "SELECT * From department";
-$Recordsetd = mysqli_query($con,$query_Recordsetd) or die(mysqli_error());
+$Recordsetd = mysqli_query($con,$query_Recordsetd) or die(mysqli_error($con));
 $row_Recordsetd = mysqli_fetch_assoc($Recordsetd);
 $totalRows_Recordsetd = mysqli_num_rows($Recordsetd);
 ?>
-
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
-<link href="style1.css" rel="stylesheet" type="text/css" />
-<title>SUOES Instructor  Management</title>
-<script src="../SpryAssets/SpryTabbedPanels.js" type="text/javascript"></script>
-<script src="../SpryAssets/SpryValidationTextField.js" type="text/javascript"></script>
-<link href="../SpryAssets/SpryTabbedPanels.css" rel="stylesheet" type="text/css" />
-<style type="text/css">
-<!--
-.style1 {font-size: small}
--->
-</style>
-<link href="../SpryAssets/SpryValidationTextField.css" rel="stylesheet" type="text/css" />
-<style type="text/css">
-<!--
-.style12 {font-size: small; font-weight: bold; }
-.style3 {font-family: Verdana, Arial, Helvetica, sans-serif;
-	font-size: small;
-	font-weight: bold;
-	color: #000000;
-}
-.style9 {font-family: Verdana, Arial, Helvetica, sans-serif}
-.style4 {
-	font-size: small;
-	font-weight: bold;
-	color: #FFFFFF;
-}
-.style5 {color: #FFFFFF}
-.style6 {color: #000000}
--->
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instructor Management - Admin Dashboard</title>
+    <link href="../assets/css/modern-v2.css" rel="stylesheet">
+    <link href="../assets/css/admin-modern-v2.css" rel="stylesheet">
+    <link href="../assets/css/admin-sidebar.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        .tabs-container {
+            background: white;
+            border-radius: var(--radius-lg);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .tabs-header {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 3px solid #e0e0e0;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 1.25rem 2rem;
+            background: transparent;
+            border: none;
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -3px;
+        }
+        .tab-btn:hover {
+            background: rgba(0, 51, 102, 0.05);
+            color: var(--primary-color);
+        }
+        .tab-btn.active {
+            background: white;
+            color: var(--primary-color);
+            border-bottom-color: var(--secondary-color);
+            font-weight: 700;
+        }
+        .tab-content {
+            display: none;
+            padding: 2rem;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            font-size: 1rem;
+        }
+        .form-group input[type="text"],
+        .form-group input[type="email"],
+        .form-group input[type="password"],
+        .form-group select {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: var(--radius-md);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(0, 51, 102, 0.1);
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        .data-table thead {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+        }
+        .data-table th {
+            padding: 1rem;
+            text-align: left;
+            color: white;
+            font-weight: 700;
+            font-size: 1rem;
+        }
+        .data-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 0.95rem;
+        }
+        .data-table tbody tr {
+            transition: all 0.3s ease;
+        }
+        .data-table tbody tr:hover {
+            background: #f8f9fa;
+            transform: scale(1.01);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        .action-link {
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-md);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-block;
+            margin-right: 0.5rem;
+        }
+        .action-link.edit {
+            background: #28a745;
+            color: white;
+        }
+        .action-link.edit:hover {
+            background: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+        }
+        .action-link.delete {
+            background: #dc3545;
+            color: white;
+        }
+        .action-link.delete:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+        }
+    </style>
 </head>
+<body class="admin-layout">
+    <?php include 'sidebar-component.php'; ?>
 
-<body>
-<div id="container">
-	<?php
-		include "Header.php";
-		?>
-	<div id="content">
-            <div id="logout" align="left"><h2>Would you want to <a href="Logout.php">Logout</a></h2></div>
-		<div id="left">
-			<h1>Welcome </h1>
-			
-	        <div id="TabbedPanels1" class="TabbedPanels">
-	          <ul class="TabbedPanelsTabGroup">
-	            <li class="TabbedPanelsTab style1" tabindex="0">Create New Instructor</li>
-	            <li class="TabbedPanelsTab style1" tabindex="0">Display Instructor</li>
-              </ul>
-	          <div class="TabbedPanelsContentGroup">
-	            <div class="TabbedPanelsContent">
-	              <table width="100%" border="0" cellspacing="0" cellpadding="0">
-                    <tr>
-                      <td>&nbsp;</td>
-                    </tr>
-                    <tr>
-                        <td><form id="form1" name="form1" method="post" action="InsertInstructor.php">
-                        <table width="100%" height="94" border="0" cellpadding="0" cellspacing="0">
-                          <tr>
-                            <td>Instructor Id:</td>
-                            <td><span id="sprytextfield1">
-                              <label>
-                              <input type="text" name="instID" id="instID" />
-                              </label>
-                            <span class="textfieldRequiredMsg">A value is required.</span></span></td>
-                          </tr>
-                            <tr><td>&nbsp;</td></tr>
-                            <tr>
-                            <td>Instructor Name:</td>
-                            <td><span id="sprytextfield2">
-                              <label>
-                              <input type="text" name="instName" id="instName" />
-                              </label>
-                            <span class="textfieldRequiredMsg">A value is required.</span></span></td>
-                          </tr>
-                            <tr><td>&nbsp;</td></tr>
-                            <tr>
-                            <td>Email :</td>
-                            <td><span id="sprytextfield3">
-                              <label>
-                                  <input type="email" name="instEmail" id="instEmail" />
-                              </label>
-                            <span class="textfieldRequiredMsg">A value is required.</span></span></td>
-                          </tr>
-                            <tr><td>&nbsp;</td></tr>
-                            <tr>
-                            <td>Username :</td>
-                            <td><span id="sprytextfield4">
-                              <label>
-                              <input type="text" name="instUName" id="instUName" />
-                              </label>
-                            <span class="textfieldRequiredMsg">A value is required.</span></span></td>
-                          </tr>
-                            <tr><td>&nbsp;</td></tr>
-                          <tr>
-                            <td>Password:</td>
-                            <td><span id="sprytextfield5">
-                              <label>
-                                  <input type="password" name="instPassword" id="instPassword" />
-                              </label>
-                            <span class="textfieldRequiredMsg">A value is required.</span></span></td>
-                          </tr>
-                            <tr><td>&nbsp;</td></tr>
-                            
-                             <tr>
-                        <td height="35">Department:</td>
-                        <td><select name="cmbDept" id="cmbDept">
-                          
-<?php
-do {  
-?>
+    <div class="admin-main-content">
+        <?php include 'header-component.php'; ?>
+
+        <div class="admin-content">
+            <div class="page-header">
+                <h1>👨‍🏫 Instructor Management</h1>
+                <p>Create and manage instructors in the system</p>
+            </div>
+
+            <div class="tabs-container">
+                <div class="tabs-header">
+                    <button class="tab-btn active" onclick="switchTab(0)">➕ Create New Instructor</button>
+                    <button class="tab-btn" onclick="switchTab(1)">📋 Display Instructors</button>
+                </div>
+
+                <!-- Tab 1: Create New Instructor -->
+                <div class="tab-content active">
+                    <form method="post" action="InsertInstructor.php">
+                        <div class="form-group">
+                            <label for="instID">Instructor ID:</label>
+                            <input type="text" name="instID" id="instID" required placeholder="Enter Instructor ID">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="instName">Instructor Name:</label>
+                            <input type="text" name="instName" id="instName" required placeholder="Enter Instructor Name">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="instEmail">Email:</label>
+                            <input type="email" name="instEmail" id="instEmail" required placeholder="Enter Email Address">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="instUName">Username:</label>
+                            <input type="text" name="instUName" id="instUName" required placeholder="Enter Username">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="instPassword">Password:</label>
+                            <input type="password" name="instPassword" id="instPassword" required placeholder="Enter Password">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="cmbDept">Department:</label>
+                            <select name="cmbDept" id="cmbDept" required>
+                                <option value="">-- Select Department --</option>
+                                <?php
+                                do {  
+                                ?>
                                 <option value="<?php echo $row_Recordsetd['deptno']?>"><?php echo $row_Recordsetd['dept_name']?></option>
                                 <?php
-} while ($row_Recordsetd = mysqli_fetch_assoc($Recordsetd));
-  $rows = mysqli_num_rows($Recordsetd);
-  if($rows > 0) {
-      mysqli_data_seek($Recordsetd, 0);
-	  $row_Recordsetd = mysqli_fetch_assoc($Recordsetd);
-  }
-?>
-                          
-                        </select></td>
-                      </tr>
-                            <tr><td>&nbsp;</td></tr>
-                              <tr>
-                              <td>Status:</td>
-                              <td><label>
-                              <select name="cmbStatus" id="cmbStatus">
-                                  <option>Active</option>
-                                  <option>Inactive</option>
-                                    </select>
-                              </label></td>
-                            </tr>
-                            <tr><td>&nbsp;</td></tr>
-                          <tr>
-                            <td>&nbsp;</td>
-                            <td><label>
-                              <input type="submit" name="button" id="button" value="Submit" />
-                            </label></td>
-                          </tr>
-                        </table>
-                                            </form>
-                      </td>
-                    </tr>
-                  </table>
-	            </div>
-	            <div class="TabbedPanelsContent">
-	              <table width="100%" border="1" bordercolor="#85A157" >
-                    <tr>
-                      <th height="32" bgcolor="#85A157" class="style3"><div align="left" class="style9 style5"><strong>Id</strong></div></th>
-                      <th height="32" bgcolor="#85A157" class="style3"><div align="left" class="style9 style5"><strong>Name</strong></div></th>
-					  <th height="32" bgcolor="#85A157" class="style3"><div align="left" class="style9 style5"><strong>Email</strong></div></th>
-                      <th height="32" bgcolor="#85A157" class="style3"><div align="left" class="style9 style5"><strong>Department</strong></div></th>
-                      <th height="32" bgcolor="#85A157" class="style3"><div align="left" class="style9 style5"><strong>UserName</strong></div></th>
-                      <th bgcolor="#85A157" class="style3"><div align="left" class="style9 style5"><strong>Password</strong></div></th>
-                      <th height="32" bgcolor="#85A157" class="style3"><div align="left" class="style9 style5"><strong>Status</strong></div></th>
-                      <th bgcolor="#85A157" class="style3"><div align="left" class="style9 style5"><strong>Edit</strong></div></th>
-                      <th bgcolor="#85A157" class="style3"><div align="left" class="style4">Delete</div></th>
-                    </tr>
-                    <?php
-// Establish Connection with Database
-$con = mysqli_connect("localhost","root","","oes");// Select Database
-//mysqli_select_db("oes", $con);
-// Specify the query to execute
-$sql = "select * from instructor";
-// Execute query
-$result = mysqli_query($con,$sql);
-// Loop through each records 
-while(@$row = mysqli_fetch_array($result))
-{
-$Id=$row['Inst_ID'];
-$Name=$row['Inst_Name'];
-$Email=$row['email'];
-$UserName=$row['username'];
-$Password=$row['password'];
-$Department=$row['dept_name'];
-$Status=$row['Status'];
+                                } while ($row_Recordsetd = mysqli_fetch_assoc($Recordsetd));
+                                $rows = mysqli_num_rows($Recordsetd);
+                                if($rows > 0) {
+                                    mysqli_data_seek($Recordsetd, 0);
+                                    $row_Recordsetd = mysqli_fetch_assoc($Recordsetd);
+                                }
+                                ?>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="cmbStatus">Status:</label>
+                            <select name="cmbStatus" id="cmbStatus" required>
+                                <option value="Active">Active</option>
+                                <option value="Inactive">Inactive</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">
+                                ✓ Submit
+                            </button>
+                        </div>
+                    </form>
+                </div>
 
-?>
-                    <tr>
-                      <td bgcolor="#B8DEE9" class="style3"><div align="left" class="style9 style6"><strong><?php echo $Id;?></strong></div></td>
-                      <td bgcolor="#B8DEE9" class="style3"><div align="left" class="style9 style6"><strong><?php echo $Name;?></strong></div></td>
-					  <td bgcolor="#B8DEE9" class="style3"><div align="left" class="style9 style6"><strong><?php echo $Email;?></strong></div></td>
-                      <td bgcolor="#B8DEE9" class="style3"><div align="left" class="style9 style6"><strong><?php echo $Department;?></strong></div></td>
-                      <td bgcolor="#B8DEE9" class="style3"><div align="left" class="style9 style6"><strong><?php echo $UserName;?></strong></div></td>
-                       <td bgcolor="#B8DEE9" class="style3"><div align="left" class="style9 style6"><strong><?php echo $Password;?></strong></div></td>                     
-                      <td bgcolor="#B8DEE9" class="style3"><div align="left" class="style9 style6"><strong><?php echo $Status;?></strong></div></td>
-                      <td bgcolor="#B8DEE9" class="style3"><div align="left" class="style9 style6"><strong><a href="EditInstructor.php?Id=<?php echo $Id;?>">Edit</a></strong></div></td>
-                      <td bgcolor="#B8DEE9" class="style3"><div align="left" class="style9 style6"><strong><a href="DeleteInstructor.php?Id=<?php echo $Id;?>">Delete</a></strong></div></td>
-                    </tr>
-                    <?php
-}
-// Retrieve Number of records returned
-$records = mysqli_num_rows($result);
-?>
-                    <tr>
-                      <td colspan="4" class="style3"><div align="left" class="style12"> </div></td>
-                    </tr>
-                    <?php
-// Close the connection
-mysqli_close($con);
-?>
-                  </table>
-	            </div>
-              </div>
-          </div>
-          <p>&nbsp;</p>
-	
-	<h1>&nbsp;</h1>
-	  </div>
-		
-		<div id="footerline"></div>
-	</div>
-	
-	  <div id="footer">Copyright &copy; 2014/2022 SU Online Examination System. <br/> All rights reserved.&nbsp;</div>	
-</div>
-<script type="text/javascript">
-<!--
-var TabbedPanels1 = new Spry.Widget.TabbedPanels("TabbedPanels1");
-var sprytextfield1 = new Spry.Widget.ValidationTextField("sprytextfield1");
-var sprytextfield2 = new Spry.Widget.ValidationTextField("sprytextfield2");
-var sprytextfield3 = new Spry.Widget.ValidationTextField("sprytextfield3");
-var sprytextfield4 = new Spry.Widget.ValidationTextField("sprytextfield4");
-var sprytextfield5 = new Spry.Widget.ValidationTextField("sprytextfield5");
-//-->
-</script>
+                <!-- Tab 2: Display Instructors -->
+                <div class="tab-content">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Department</th>
+                                <th>Username</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php
+                            $con2 = mysqli_connect("localhost","root","","oes");
+                            $sql = "select * from instructor";
+                            $result = mysqli_query($con2,$sql);
+
+                            while(@$row = mysqli_fetch_array($result))
+                            {
+                                $Id=$row['Inst_ID'];
+                                $Name=$row['Inst_Name'];
+                                $Email=$row['email'];
+                                $UserName=$row['username'];
+                                $Department=$row['dept_name'];
+                                $Status=$row['Status'];
+                            ?>
+                            <tr>
+                                <td><strong><?php echo $Id;?></strong></td>
+                                <td><?php echo $Name;?></td>
+                                <td><?php echo $Email;?></td>
+                                <td><?php echo $Department;?></td>
+                                <td><?php echo $UserName;?></td>
+                                <td><?php echo $Status;?></td>
+                                <td>
+                                    <a href="EditInstructor.php?Id=<?php echo $Id;?>" class="action-link edit">✏️ Edit</a>
+                                    <a href="DeleteInstructor.php?Id=<?php echo $Id;?>" class="action-link delete" onclick="return confirm('Are you sure you want to delete this instructor?')">🗑️ Delete</a>
+                                </td>
+                            </tr>
+                            <?php
+                            }
+                            mysqli_close($con2);
+                            ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../assets/js/admin-sidebar.js?v=<?php echo time(); ?>"></script>
 </body>
 </html>
+<?php 
+mysqli_close($con);
+?>

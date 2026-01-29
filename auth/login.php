@@ -7,10 +7,19 @@
 
 <body>
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 session_start();
-$UserName=$_POST['txtUserName'];
-$Password=$_POST['txtPassword'];
-$UserType=$_POST['cmbType'];
+$UserName=$_POST['txtUserName'] ?? '';
+$Password=$_POST['txtPassword'] ?? '';
+$UserType=$_POST['cmbType'] ?? '';
+
+// Check if form was submitted
+if(empty($UserName) || empty($Password) || empty($UserType)) {
+    echo '<script type="text/javascript">alert("Please fill in all fields");window.location=\'student-login.php\';</script>';
+    exit();
+}
 
 if($UserType==="Administrator")
 {
@@ -59,7 +68,7 @@ $_SESSION['Name']=$row['Inst_Name'];
 $_SESSION['Dept']=$row['dept_name'];
 $_SESSION['Course']=$row['course_name'];
 $_SESSION['Email']=$row['email'];
-header("location:Instructor/index.php");
+header("location:../Instructor/index.php");
 } 
 $stmt->close();
 $con->close();
@@ -84,7 +93,7 @@ $_SESSION['ID']=$row['EC_ID'];
 $_SESSION['Name']=$row['EC_Name'];
 $_SESSION['Dept']=$row['dept_name'];
 
-header("location:ExamCommittee/index.php");
+header("location:../ExamCommittee/index.php");
 } 
 $stmt->close();
 $con->close();
@@ -93,7 +102,18 @@ $con->close();
 else if ($UserType=="Student")
 {
  $con = new mysqli("localhost","root","","oes");
+ 
+ // Check connection
+ if ($con->connect_error) {
+     die("Connection failed: " . $con->connect_error);
+ }
+ 
 $stmt = $con->prepare("select * from student where username=? and password=? and Status='Active'");
+
+if (!$stmt) {
+    die("Prepare failed: " . $con->error);
+}
+
 $stmt->bind_param("ss", $UserName, $Password);
 $stmt->execute();
 $result = $stmt->get_result();
@@ -102,7 +122,7 @@ $records = $result->num_rows;
 
 if ($records==0)
 {
-echo '<script type="text/javascript">alert("Wrong UserName or Password or Inactivated");window.location=\'index.php\';</script>';
+echo '<script type="text/javascript">alert("Wrong UserName or Password or Inactivated");window.location=\'student-login.php\';</script>';
 }
 else
 {
@@ -110,7 +130,8 @@ $_SESSION['ID']=$row['Id'];
 $_SESSION['Name']=$row['Name'];
 $_SESSION['Dept']=$row['dept_name'];
 $_SESSION['Sem']=$row['semister'];
-header("location:Student/index.php");
+header("location:../Student/index-modern.php");
+exit();
 } 
 $stmt->close();
 $con->close();

@@ -1,222 +1,265 @@
 <?php
-if (isset($_SESSION))
-{
-  session_start();
-  
+session_start();
+if(!isset($_SESSION['username'])){
+    header("Location:../index-modern.php");
+    exit();
 }
-?>
-<?php require_once('../Connections/OES.php'); ?>
-<?php
-$con->select_db($database_OES);
-$query_Recordsetd = "SELECT * From department";
-$Recordsetd = $con->query($query_Recordsetd);
-$row_Recordsetd = $Recordsetd->fetch_assoc();
-$totalRows_Recordsetd = $Recordsetd->num_rows;
 
-$con->select_db($database_OES);
-$query_Recordset2 = "SELECT * FROM course";
-$Recordset2 = $con->query($query_Recordset2);
-$row_Recordset2 = $Recordset2->fetch_assoc();
-$totalRows_Recordset2 = $Recordset2->num_rows;
+// Database connection
+$con = new mysqli("localhost","root","","oes");
+if ($con->connect_error) {
+    die("Connection failed: " . $con->connect_error);
+}
+
+// Get instructor data
+$Id = $_GET['Id'];
+$sql = "select * from instructor where Inst_ID='".$Id."'";
+$result = $con->query($sql);
+
+if($row = $result->fetch_array()) {
+    $Inst_ID = $row['Inst_ID'];
+    $Inst_Name = $row['Inst_Name'];
+    $Email = $row['email'];
+    $UserName = $row['username'];
+    $Department = $row['dept_name'];
+    $Status = $row['Status'];
+} else {
+    header("Location: Instructor.php");
+    exit();
+}
+
+// Get departments for dropdown
+$query_dept = "SELECT * From department";
+$result_dept = $con->query($query_dept);
 ?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
-<link href="style1.css" rel="stylesheet" type="text/css" />
-<title>AMU OES Exam Committee Management</title>
-<style type="text/css">
- #dep{
-        float:left;
-  width:550px;
-  margin-left:10px;
-  padding: 0px 10px 30px 0px;
-  display:inline;
-    }</style>
-<!--
-.style10 {font-family: Verdana, Arial, Helvetica, sans-serif; font-size: small; font-weight: bold; color: #FFFFFF; }
-.style8 {font-family: Verdana, Arial, Helvetica, sans-serif; font-size: small; font-weight: bold; }
--->
-</style>
-<script src="../SpryAssets/SpryValidationTextField.js" type="text/javascript"></script>
-<link href="../SpryAssets/SpryValidationTextField.css" rel="stylesheet" type="text/css" />
-<style type="text/css">
-<!--
-.style11 {color: #000000}
--->
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Instructor - Admin Dashboard</title>
+    <link href="../assets/css/modern-v2.css" rel="stylesheet">
+    <link href="../assets/css/admin-modern-v2.css" rel="stylesheet">
+    <link href="../assets/css/admin-sidebar.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        .page-header {
+            text-align: center;
+        }
+        
+        .edit-container {
+            background: white;
+            border-radius: var(--radius-lg);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        
+        .info-section {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: var(--radius-md);
+            margin-bottom: 2rem;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .info-section h3 {
+            margin: 0 0 1rem 0;
+            color: var(--primary-color);
+            font-size: 1.1rem;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+        
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .info-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+        
+        .info-value {
+            font-size: 1rem;
+            color: var(--primary-color);
+            font-weight: 700;
+        }
+        
+        .form-section h3 {
+            margin: 0 0 1.5rem 0;
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            font-size: 1rem;
+        }
+        
+        .form-group select {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: var(--radius-md);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(0, 51, 102, 0.1);
+        }
+        
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 2px solid #e0e0e0;
+        }
+        
+        @media (max-width: 768px) {
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
+<body class="admin-layout">
+    <?php include 'sidebar-component.php'; ?>
 
-<body>
-<div id="container">
-<div id="header">
-  </div>
-  <div id="content">
-    
-    <?php
-    include "left_head.php";
-    ?>
-    <div id="left">
-      <div id="dep">
-			<table width="100%" height="209" border="0" cellpadding="0" cellspacing="0">
-              <tr>      <h1>&nbsp;</h1>
+    <div class="admin-main-content">
+        <?php include 'header-component.php'; ?>
 
-                <td height="33" bgcolor="#b8f5b1"><span class="style10 style11">Edit Instructor Information</span></td>
-              </tr>
-              <tr>
-                <td><?php
-$Id=$_GET['Id'];
-// Establish Connection with Database
-	$con = new mysqli("localhost","root");
-	// Select Database
-	$con->select_db("oes");
-	// Specify the query to Insert Record
-    $sql = "select * from instructor where Inst_ID='".$Id."'";
-	// execute query
-	$result = $con->query ($sql);
-// Loop through each records 
-while($row = $result->fetch_array())
-{
-$Id=$row['Inst_ID'];
-$Name=$row['Inst_Name'];
-$Email=$row['email'];
-$UserName=$row['username'];
-$Password=$row['password'];
-$Department=$row['dept_name'];
-$Course=$row['course_name'];
-$Status=$row['Status'];
+        <div class="admin-content">
+            <div class="page-header">
+                <h1>✏️ Edit Instructor Information</h1>
+                <p>Update instructor details</p>
+            </div>
 
+            <div class="edit-container">
+                <div class="info-section">
+                    <h3>📋 Current Information</h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-label">Instructor ID</span>
+                            <span class="info-value"><?php echo $Inst_ID; ?></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Name</span>
+                            <span class="info-value"><?php echo $Inst_Name; ?></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Email</span>
+                            <span class="info-value"><?php echo $Email; ?></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Username</span>
+                            <span class="info-value"><?php echo $UserName; ?></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Department</span>
+                            <span class="info-value"><?php echo $Department; ?></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Status</span>
+                            <span class="info-value"><?php echo $Status; ?></span>
+                        </div>
+                    </div>
+                </div>
 
-}
-?>
-                    <form method="post" action="UpdateInstructor.php?ID=<?php echo $Id;?>">
-
-                      <table width="100%" border="0">
-                          <tr>
-                          <td height="32"><span class="style8">Instructor Id</span></td>
-             <td><span  id="sprytextfield2">
-                                <label><?php echo $Id;?>
-                            </label></span></td>
-                      <!--</tr>
-                        <tr>
-                          <td height="32"><span class="style8">Instructor Id</span></td>
-                          <td><span id="sprytextfield1">
-                            <label>
-                            <input name="instID" type="text" id="instID" value="<?php echo $Id;?>" />
-                            </label>
-                            <span class="textfieldRequiredMsg">A value is required.</span></span></td>
-                        </tr>
-                          <tr>
-                          <td height="32"><span class="style8">Instructor Name:</span></td>
-                          <td><span id="sprytextfield2">
-                            <label>
-                            <input name="instName" type="text" id="instName"  />
-                            </label>
-                            <span class="textfieldRequiredMsg">A value is required.</span></span></td>
-                        </tr>-->
-                         <tr>
-                            <td>Select Course:</td>
-                            <td><label>
-                              <select name="cmbCourse" id="cmbCourse">
+                <div class="form-section">
+                    <h3>🔄 Update Information</h3>
+                    <form method="post" action="UpdateInstructor.php?ID=<?php echo $Inst_ID;?>">
+                        <div class="form-group">
+                            <label for="cmbDept">Change Department:</label>
+                            <select name="cmbDept" id="cmbDept">
+                                <option value="<?php echo $Department; ?>"><?php echo $Department; ?> (Current)</option>
                                 <?php
-do {  
-?>
-                                <option value="<?php echo $row_Recordset2['course_name']?>"><?php echo $row_Recordset2['course_name']?></option>
-                                <?php
-} while ($row_Recordset2 = $Recordset2->fetch_assoc());
-  $rows = $Recordset2_>num_rows;
-  if($rows > 0) {
-      $Recordset2->data_seek(0);
-    $row_Recordset2 = $Recordset2->fetch_assoc();
-  }
-?>
-                              </select>
-                            </label></td>
-                          </tr>
-                             <tr>
-                        <td height="35">Department:</td>
-                        <td><select name="cmbDept" id="cmbDept">
-                          
-<?php
-do {  
-?>
-                                <option value="<?php echo $row_Recordsetd['dept_name']?>"><?php echo $row_Recordsetd['dept_name']?></option>
-                                <?php
-} while ($row_Recordsetd = $Recordsetd->fetch_assoc());
-  $rows = $Recordsetd->num_rows;
-  if($rows > 0) {
-      $Recordsetd->data_seek(0);
-    $row_Recordsetd = $Recordsetd->fetch_assoc();
-    
-  }
-?>
-                          
-                        </select></td>
-                      </tr>
-                      <!--
-                        <tr>
-                          <td height="36"><span class="style8">Username:</span></td>
-                          <td><span id="sprytextfield3">
-                            <label>
-                            <input name="instUserName" type="text" id="instUserName"  />
-                            </label>
-                            <span class="textfieldRequiredMsg">A value is required.</span></span></td>
-                        </tr>
-                        <tr>
-                          <td height="36"><span class="style8">Password:</span></td>
-                          <td><span id="sprytextfield4">
-                            <label>
-                            <input name="txtPass" type="password" id="txtPass"  />
-                            </label>
-                            <span class="textfieldRequiredMsg">A value is required.</span></span></td>
-                        </tr>-->
-                          <tr><td><strong>Status:  </strong></td>
-                              <td><label>
-                              <select name="cmbStatus" id="cmbStatus">
-                                  <option>Active</option>
-                                  <option>Inactive</option>
-                                    </select>
-                                  </label></td></tr>
-                        <tr>
-                          <td></td>
-                          <td><input type="submit" name="submit" value="Update Record" /></td>
-                        </tr>
-</table>
+                                while($row_dept = $result_dept->fetch_array()) {
+                                    if($row_dept['dept_name'] != $Department) {
+                                        echo '<option value="'.$row_dept['deptno'].'">'.$row_dept['dept_name'].'</option>';
+                                    }
+                                }
+                                ?>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="cmbStatus">Change Status:</label>
+                            <select name="cmbStatus" id="cmbStatus">
+                                <option value="<?php echo $Status; ?>"><?php echo $Status; ?> (Current)</option>
+                                <?php 
+                                if($Status != 'Active') echo "<option value='Active'>Active</option>";
+                                if($Status != 'Inactive') echo "<option value='Inactive'>Inactive</option>";
+                                ?>
+                            </select>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">
+                                ✓ Update Instructor
+                            </button>
+                            <a href="Instructor.php" class="btn btn-secondary">
+                                ← Back to Instructors
+                            </a>
+                        </div>
                     </form>
-                    <?php
-// Close the connection
-$con->close();
-?>
-                    <form method="post" action="UpdateInstructor.php">
-                      <table width="100%" border="0">
-                      </table>
-                    </form></td>
-              </tr>
-		  </table>
-			<h1>&nbsp;</h1>
-			
-	        <p>&nbsp;</p>
-	
-	<h1>&nbsp;</h1>
-	  </div>
-		
-		<div id="footerline"></div>
-	</div>
-	
-	  <div id="footer">Copyright &copy; 2021 AMU Online Examination System.  All rights reserved.&nbsp;</div>
-</div>
-<script type="text/javascript">
-<!--
-var sprytextfield2 = new Spry.Widget.ValidationTextField("sprytextfield2");
-var sprytextfield1 = new Spry.Widget.ValidationTextField("sprytextfield1");
-var sprytextfield3 = new Spry.Widget.ValidationTextField("sprytextfield3");
-var sprytextfield4 = new Spry.Widget.ValidationTextField("sprytextfield4");
-//-->
-</script>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('en-US', { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: true 
+            });
+            document.getElementById('currentTime').textContent = timeString;
+        }
+        updateTime();
+        setInterval(updateTime, 1000);
+
+        function toggleSidebar() {
+            document.querySelector('.admin-sidebar').classList.toggle('open');
+        }
+
+        document.addEventListener('click', function(event) {
+            const sidebar = document.querySelector('.admin-sidebar');
+            const menuBtn = document.querySelector('.mobile-menu-btn');
+            
+            if (window.innerWidth <= 1024) {
+                if (!sidebar.contains(event.target) && !menuBtn.contains(event.target)) {
+                    sidebar.classList.remove('open');
+                }
+            }
+        });
+    </script>
 </body>
 </html>
-<?php
-$Recordsetd->free_result();
-
-$Recordset2->free_result();
+<?php 
+$con->close();
 ?>

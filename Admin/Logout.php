@@ -1,28 +1,18 @@
 <?php
-// *** Logout the current user.
-$logoutGoTo = "../index.php";
-if (!isset($_SESSION['username'])) {
-  session_start();
-header("Location: $logoutGoTo");
-unset($_SESSION['username']);
-unset($_SESSION[$header]);
+session_start();
+
+// Clear all session variables
+$_SESSION = array();
+
+// Destroy the session cookie
+if (isset($_COOKIE[session_name()])) {
+    setcookie(session_name(), '', time()-3600, '/');
+}
+
+// Destroy the session
 session_destroy();
 
-}
-else if (isset ($_SESSION['username'])) {
-  header("Location: $logoutGoTo");  
-exit;
-}
-
-
+// Redirect to login page
+header("Location: ../index-modern.php");
+exit();
 ?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<title>Untitled Document</title>
-</head>
-
-<body>
-</body>
-</html>
