@@ -1,106 +1,161 @@
 <?php
-if (!isset($_SESSION)) 
-{
-  session_start();
-  
+if (!isset($_SESSION)) {
+    session_start();
 }
-?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
-<link href="style1.css" rel="stylesheet" type="text/css" />
-<title>SUOES Student Profile</title>
-<script src="../SpryAssets/SpryValidationTextField.js" type="text/javascript"></script>
-<link href="../SpryAssets/SpryValidationTextField.css" rel="stylesheet" type="text/css" />
-</head>
 
-<body>
-<div id="container">
-	<div id="header">
-	</div>
-    <?php
-//		include "left_head.php";
-		?>
-	<div id="content">	<?php
-		include "Header.php";
-		?>
-		<div id="left">
-				            <div class="login">
-	<h2>&nbsp;</h2>
+if(!isset($_SESSION['Name'])){
+    header("Location:../auth/institute-login.php");
+    exit();
+}
 
-			<h1 style="color:red">Hi! <?php  echo $_SESSION['Name'];?> Welcome to Profle</h1>
-			<?php
-$Id=$_GET['InstId'];
-// Establish Connection with Database
-$con = new mysqli("localhost","root");
-// Select Database
-$con->select_db("oes");
-// Specify the query to execute
-$sql = "select * from instructor where instructor.Inst_ID='".$Id."'";
-// Execute query
+$Id = $_GET['InstId'] ?? $_SESSION['ID'];
+$con = new mysqli("localhost","root","","oes");
+$pageTitle = "Edit Profile";
+
+// Get instructor details
+$sql = "SELECT * FROM instructor WHERE Inst_ID='".$con->real_escape_string($Id)."'";
 $result = $con->query($sql);
-// Loop through each records 
-while($row = $result->fetch_array())
-{
-$Id=$row['Inst_ID'];
-$Department=$row['dept_name'];
-$Name=$row['Inst_Name'];
+$instructor = $result->fetch_assoc();
 
-$Email=$row['email'];
-
-$UserName =$row['username'];
-$Password=$row['password'];
-$Status=$row['Status'];
+if(!$instructor) {
+    header("Location: Profile.php");
+    exit();
 }
-?>	<br/> 
-          <form method="post" action="UpdateProfile.php?Id=<?php echo $Id;?>">
-                     <span class="style8"><strong>Instructor Id:</strong></span>
-                          <?php echo $Id;?><br/> <br/> 
-                       <span class="style8"><strong> Instructor Name  :</strong></span>
-                         <?php echo $Name;?><br/> <br/> 
-                       <span class="style8"><strong>   Email  :</strong></span>
-                        <?php echo $Email;?><br/>
-                       <br/> <span class="style8"><strong>   Status  :</strong></span>
-                          <?php echo $Status;?><br/> <br/>                        
-                       <strong>Change username:</strong>
-                          <span id="sprytextfield4">
-                            <label>
-                            <input type="text" name="txtUser" id="txtUser"  />
-                            </label>
-                          <span class="textfieldRequiredMsg">A value is required.</span></span><br/> <br/> 
-                        <strong>Change Password:</strong>
-                          <span id="sprytextfield5">
-                            <label>
-                            <input type="password" name="txtPass" id="txtPass"  />
-                            </label>
-                          <span class="textfieldRequiredMsg">A value is required.</span></span><br/> <br/> 
-                      <label>
-                            <input type="submit" name="button" id="button" value="Update Profile" />
-                          </label>
-                      
-          </form>
-                  <?php
-// Close the connection
-$con->close();
 ?>
-	<p>&nbsp;</p>
-	
-	  </div>
-		</div>
-		<div id="footerline"></div>
-	</div>
-	
-	<div id="footer">Copyright &copy; 2022 SU Online Examination System. All rights reserved.&nbsp;</div>	
-</div>
-<script type="text/javascript">
-<!--
-var sprytextfield1 = new Spry.Widget.ValidationTextField("sprytextfield1");
-var sprytextfield2 = new Spry.Widget.ValidationTextField("sprytextfield2");
-var sprytextfield3 = new Spry.Widget.ValidationTextField("sprytextfield3");
-var sprytextfield4 = new Spry.Widget.ValidationTextField("sprytextfield4");
-var sprytextfield5 = new Spry.Widget.ValidationTextField("sprytextfield5");
-//-->
-</script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Profile - Instructor</title>
+    <link href="../assets/css/modern-v2.css" rel="stylesheet">
+    <link href="../assets/css/admin-modern-v2.css" rel="stylesheet">
+    <link href="../assets/css/admin-sidebar.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="admin-layout">
+    <?php include 'sidebar-component.php'; ?>
+
+    <div class="admin-main-content">
+        <?php include 'header-component.php'; ?>
+
+        <div class="admin-content">
+            <div class="page-header">
+                <h1>👤 Edit Profile</h1>
+                <p>Update your account information</p>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Profile Information</h3>
+                </div>
+                <div style="padding: 2rem;">
+                    <!-- Current Information Display -->
+                    <div style="background: var(--bg-light); padding: 2rem; border-radius: var(--radius-lg); margin-bottom: 2rem; border-left: 4px solid var(--primary-color);">
+                        <h3 style="margin: 0 0 1.5rem 0; color: var(--primary-color);">Current Information</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+                            <div>
+                                <strong style="color: var(--text-secondary); display: block; margin-bottom: 0.5rem;">Instructor ID:</strong>
+                                <p style="margin: 0; font-size: 1.1rem; font-weight: 600;"><?php echo htmlspecialchars($instructor['Inst_ID']); ?></p>
+                            </div>
+                            <div>
+                                <strong style="color: var(--text-secondary); display: block; margin-bottom: 0.5rem;">Name:</strong>
+                                <p style="margin: 0; font-size: 1.1rem; font-weight: 600;"><?php echo htmlspecialchars($instructor['Inst_Name']); ?></p>
+                            </div>
+                            <div>
+                                <strong style="color: var(--text-secondary); display: block; margin-bottom: 0.5rem;">Email:</strong>
+                                <p style="margin: 0; font-size: 1.1rem; font-weight: 600;"><?php echo htmlspecialchars($instructor['email']); ?></p>
+                            </div>
+                            <div>
+                                <strong style="color: var(--text-secondary); display: block; margin-bottom: 0.5rem;">Department:</strong>
+                                <p style="margin: 0; font-size: 1.1rem; font-weight: 600;"><?php echo htmlspecialchars($instructor['dept_name']); ?></p>
+                            </div>
+                            <div>
+                                <strong style="color: var(--text-secondary); display: block; margin-bottom: 0.5rem;">Status:</strong>
+                                <p style="margin: 0; font-size: 1.1rem; font-weight: 600;">
+                                    <span style="color: var(--success-color);"><?php echo htmlspecialchars($instructor['Status']); ?></span>
+                                </p>
+                            </div>
+                            <div>
+                                <strong style="color: var(--text-secondary); display: block; margin-bottom: 0.5rem;">Current Username:</strong>
+                                <p style="margin: 0; font-size: 1.1rem; font-weight: 600;"><?php echo htmlspecialchars($instructor['username']); ?></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Update Form -->
+                    <form method="post" action="UpdateProfile.php?Id=<?php echo $instructor['Inst_ID']; ?>" onsubmit="return validateForm()">
+                        <h3 style="margin: 0 0 1.5rem 0; color: var(--primary-color);">Update Credentials</h3>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>New Username</label>
+                                <input type="text" name="txtUser" id="txtUser" class="form-control" 
+                                       placeholder="Enter new username" 
+                                       value="<?php echo htmlspecialchars($instructor['username']); ?>" required>
+                                <small style="color: var(--text-secondary);">Leave as is if you don't want to change</small>
+                            </div>
+                            <div class="form-group">
+                                <label>New Password</label>
+                                <input type="password" name="txtPass" id="txtPass" class="form-control" 
+                                       placeholder="Enter new password">
+                                <small style="color: var(--text-secondary);">Leave empty if you don't want to change</small>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Confirm New Password</label>
+                                <input type="password" name="txtPassConfirm" id="txtPassConfirm" class="form-control" 
+                                       placeholder="Confirm new password">
+                                <small id="passwordError" style="color: #dc3545; display: none;">Passwords do not match</small>
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">
+                                💾 Update Profile
+                            </button>
+                            <a href="Profile.php" class="btn btn-secondary">
+                                ← Back to Profile
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../assets/js/admin-sidebar.js"></script>
+    <script>
+        function validateForm() {
+            const password = document.getElementById('txtPass').value;
+            const confirmPassword = document.getElementById('txtPassConfirm').value;
+            const passwordError = document.getElementById('passwordError');
+            
+            // If password field is not empty, check if they match
+            if (password !== '' && password !== confirmPassword) {
+                passwordError.style.display = 'block';
+                return false;
+            }
+            
+            passwordError.style.display = 'none';
+            return true;
+        }
+        
+        // Real-time password match validation
+        document.getElementById('txtPassConfirm').addEventListener('input', function() {
+            const password = document.getElementById('txtPass').value;
+            const confirmPassword = this.value;
+            const passwordError = document.getElementById('passwordError');
+            
+            if (password !== '' && confirmPassword !== '' && password !== confirmPassword) {
+                passwordError.style.display = 'block';
+            } else {
+                passwordError.style.display = 'none';
+            }
+        });
+    </script>
 </body>
 </html>
+<?php $con->close(); ?>

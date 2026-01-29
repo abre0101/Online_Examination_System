@@ -65,6 +65,47 @@ $stmt->bind_param("issiiii", $examId, $courseId, $studentID, $total, $correct, $
 if ($stmt->execute()) {
     $resultId = $stmt->insert_id;
     $stmt->close();
+    
+    // Save individual answers for review
+    $answersArray = json_decode($answers, true);
+    if($answersArray && is_array($answersArray)) {
+        // First, create the table if it doesn't exist
+        $createTableSQL = "CREATE TABLE IF NOT EXISTS `student_answers` (
+            `answer_id` INT AUTO_INCREMENT PRIMARY KEY,
+            `result_id` INT NOT NULL,
+            `student_id` VARCHAR(50) NOT NULL,
+            `question_id` INT NOT NULL,
+            `selected_answer` CHAR(1),
+            `is_correct` TINYINT(1) DEFAULT 0,
+            `answered_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            INDEX `idx_result` (`result_id`),
+            INDEX `idx_student` (`student_id`),
+            INDEX `idx_question` (`question_id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4";
+        mysqli_query($con, $createTableSQL);
+        
+        // Prepare statement for inserting answers
+        $answerStmt = $con->prepare("INSERT INTO student_answers (result_id, student_id, question_id, selected_answer, is_correct) VALUES (?, ?, ?, ?, ?)");
+        
+        foreach($answersArray as $questionId => $selectedAnswer) {
+            // Get correct answer for this question
+            $correctQuery = $con->prepare("SELECT Answer FROM question_page WHERE question_id = ?");
+            $correctQuery->bind_param("i", $questionId);
+            $correctQuery->execute();
+            $correctResult = $correctQuery->get_result();
+            $correctData = $correctResult->fetch_assoc();
+            $correctQuery->close();
+            
+            $isCorrect = ($correctData && $correctData['Answer'] == $selectedAnswer) ? 1 : 0;
+            
+            // Insert answer
+            $answerStmt->bind_param("isisi", $resultId, $studentID, $questionId, $selectedAnswer, $isCorrect);
+            $answerStmt->execute();
+        }
+        
+        $answerStmt->close();
+    }
+    
     mysqli_close($con);
     
     // Store result data in session for display

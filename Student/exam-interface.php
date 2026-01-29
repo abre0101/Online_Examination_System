@@ -312,6 +312,9 @@ mysqli_close($con);
                 <button class="btn btn-warning" id="skipBtn" onclick="skipAndNext()">
                     Skip
                 </button>
+                <button class="btn btn-secondary" id="flagBtn" onclick="toggleFlag()">
+                    🚩 Flag for Review
+                </button>
             </div>
         </div>
 
@@ -330,6 +333,10 @@ mysqli_close($con);
                 <div class="legend-item">
                     <span class="legend-box skipped"></span>
                     <span>Skipped</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-box flagged"></span>
+                    <span>Flagged</span>
                 </div>
             </div>
 
@@ -362,7 +369,8 @@ mysqli_close($con);
         const totalQuestions = questions.length;
         let currentQuestion = 0;
         let answers = {};
-        let questionStatus = {}; // 'answered', 'skipped'
+        let questionStatus = {}; // 'answered', 'skipped', 'flagged'
+        let flaggedQuestions = new Set(); // Track flagged questions
         let timeLeft = 1200; // 20 minutes in seconds
         let tabSwitchCount = 0;
         const maxTabSwitches = 2;
@@ -535,6 +543,18 @@ mysqli_close($con);
             
             updateNavigationButtons();
             updateQuestionPanel();
+            
+            // Update flag button state
+            const flagBtn = document.getElementById('flagBtn');
+            if (flaggedQuestions.has(index)) {
+                flagBtn.innerHTML = '🏴 Unflag';
+                flagBtn.classList.remove('btn-secondary');
+                flagBtn.classList.add('btn-danger');
+            } else {
+                flagBtn.innerHTML = '🚩 Flag for Review';
+                flagBtn.classList.remove('btn-danger');
+                flagBtn.classList.add('btn-secondary');
+            }
         }
 
         // Confirm and next
@@ -624,6 +644,11 @@ mysqli_close($con);
                     btn.classList.add('answered');
                 } else if (questionStatus[i] === 'skipped') {
                     btn.classList.add('skipped');
+                }
+                
+                // Add flagged class if question is flagged
+                if (flaggedQuestions.has(i)) {
+                    btn.classList.add('flagged');
                 }
                 
                 if (i === currentQuestion) {
@@ -741,6 +766,27 @@ mysqli_close($con);
 
         // Initialize on load
         window.onload = initExam;
+        
+        // Toggle flag for review
+        function toggleFlag() {
+            if (examLocked) return;
+            
+            const flagBtn = document.getElementById('flagBtn');
+            
+            if (flaggedQuestions.has(currentQuestion)) {
+                flaggedQuestions.delete(currentQuestion);
+                flagBtn.innerHTML = '🚩 Flag for Review';
+                flagBtn.classList.remove('btn-danger');
+                flagBtn.classList.add('btn-secondary');
+            } else {
+                flaggedQuestions.add(currentQuestion);
+                flagBtn.innerHTML = '🏴 Unflag';
+                flagBtn.classList.remove('btn-secondary');
+                flagBtn.classList.add('btn-danger');
+            }
+            
+            updateQuestionPanel();
+        }
     </script>
 </body>
 </html>

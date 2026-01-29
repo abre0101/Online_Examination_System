@@ -150,16 +150,23 @@ if(!isset($_SESSION['Name'])){
                         </div>
                     </div>
                     
-                    <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 2px solid var(--border-color); text-align: center;">
-                        <?php if($isPassed): ?>
-                        <span class="status-badge status-active" style="font-size: 1rem; padding: 0.75rem 1.5rem;">
-                            ✅ PASSED
-                        </span>
-                        <?php else: ?>
-                        <span class="status-badge status-inactive" style="font-size: 1rem; padding: 0.75rem 1.5rem;">
-                            ❌ FAILED
-                        </span>
-                        <?php endif; ?>
+                    <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 2px solid var(--border-color);">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <?php if($isPassed): ?>
+                                <span class="status-badge status-active" style="font-size: 1rem; padding: 0.75rem 1.5rem;">
+                                    ✅ PASSED
+                                </span>
+                                <?php else: ?>
+                                <span class="status-badge status-inactive" style="font-size: 1rem; padding: 0.75rem 1.5rem;">
+                                    ❌ FAILED
+                                </span>
+                                <?php endif; ?>
+                            </div>
+                            <a href="review-answers.php?result_id=<?php echo $row['result_id']; ?>" class="btn btn-primary">
+                                📝 Review Answers
+                            </a>
+                        </div>
                     </div>
                 </div>
                 <?php

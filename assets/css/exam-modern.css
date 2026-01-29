@@ -413,6 +413,10 @@
     background: #fbbf24;
 }
 
+.legend-box.flagged {
+    background: #dc3545;
+}
+
 .panel-grid {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
@@ -451,6 +455,21 @@
     background: #fbbf24;
     color: white;
     border-color: #fbbf24;
+}
+
+.panel-question.flagged {
+    background: #dc3545;
+    color: white;
+    border: 2px solid #b91c1c;
+    position: relative;
+}
+
+.panel-question.flagged::after {
+    content: '🚩';
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    font-size: 0.7rem;
 }
 
 .panel-question.current {
