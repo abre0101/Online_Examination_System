@@ -1,0 +1,10 @@
+DirectoryIndex index-modern.php index.php
+
+# Redirect root to index-modern.php
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+    
+    # If accessing root directory, redirect to index-modern.php
+    RewriteRule ^$ index-modern.php [L]
+</IfModule>

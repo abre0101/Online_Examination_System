@@ -1,0 +1,129 @@
+
+body {
+background-color: #003300;
+color: #000000;
+font-family: Verdana, Arial, Helvetica, sans-serif;
+font-size: 14px;
+margin: 0px 5px;
+padding: 0px;
+}
+#header {
+color: #000000;
+font-family: Verdana, Arial, Helvetica, sans-serif;
+font-size: 14px;
+text-align: left;
+padding: 0px;
+background-image: url(images/Samara-University-Ethiopia.png);
+width: 1050px;
+position: relative;
+height: 118px;
+}
+#header_text a{color:#28556b;}
+#header_text a:hover{color:#c77e0c;}
+#container {
+background-color: #07dddd;
+color: #000000;
+font-family: Verdana, Arial, Helvetica, sans-serif;
+font-size: 14px;
+text-align: left;
+margin: 10px;
+background-image: url(images/.gif);
+width: 1000pxx;
+height: 570px;
+
+}
+#content {
+	background-color: linen;
+	width:1050px;
+	float: center;
+	height: 550px;
+
+}
+#left_head {
+background-color: maroon;
+color: #000000;
+font-family: Verdana, Arial, Helvetica, sans-serif;
+font-size: 14px;
+text-align: left;
+margin: 0px;
+float: left;
+width: 140px;
+padding: 12px 20px 20px 20px;
+margin-left: 0px;
+height: 470px;
+margin-top: 0px;
+padding-bottom: 15px;
+	}
+	#nav li a:link, #nav li a:visited {
+        text-decoration: none;
+	color: #FFF;
+	display: block;
+	background:  url(images/menu.gif);
+	padding: 8px 0 0 35px;
+	}
+	ul.a{
+	      list-style-type: none;
+		  margin-top: 15px;
+
+	}
+	img{
+	border-width:0px;
+       alignment-adjust: central;
+       margin: auto;
+       float:outside;
+	   width: 140px;
+
+}
+#left {
+color: #000000;
+font-family: Verdana, Arial, Helvetica, sans-serif;
+font-size: 16px;
+text-align: center;
+margin: 0px;
+float: middle;
+width: 1000px;
+height: 440px;
+margin-left: 10px;
+padding: 0px 10px 30px 0px;
+display: inline;
+}
+	h1{
+	color:#000000;
+	font-size:16px;
+	margin: 20px 0px 20px 0px;
+}
+p{
+	font-size:14px;
+	height: 0px;
+
+}
+h2{
+	color:#85a157;
+	font-size:14px;
+	text-align:center;
+	/*width:200px;*/
+	margin: 10px 0px 15px 0px;
+}
+#footer{
+background-color: #28556b;
+clear:both;
+color: white;
+font-family: Verdana, Arial, Helvetica, sans-serif;
+font-size: 14px;
+text-align: left;
+height: 35px;
+width: 1050px;
+text-align: center;
+font-weight: 1.5em;
+
+}
+#login{
+color: #000000;
+font-family: Verdana, Arial, Helvetica, sans-serif;
+font-size: 16px;
+text-align: center;
+height: 150px;
+width: 669px;
+}
+
+
