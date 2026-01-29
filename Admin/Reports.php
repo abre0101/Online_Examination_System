@@ -48,9 +48,9 @@ $deptPerformance = $con->query("SELECT
     COUNT(DISTINCT r.Result_ID) as exam_attempts,
     AVG(r.Result) as avg_score
     FROM department d
-    LEFT JOIN student s ON d.dept_name = s.dept
+    LEFT JOIN student s ON d.dept_name = s.dept_name
     LEFT JOIN result r ON s.Id = r.Stud_ID
-    GROUP BY d.dept_id, d.dept_name
+    GROUP BY d.dept_name
     ORDER BY avg_score DESC");
 
 // Recent Exam Results
@@ -85,16 +85,6 @@ while($row = $passFailStats->fetch_assoc()) {
     if($row['status'] == 'Pass') $passCount = $row['count'];
     else $failCount = $row['count'];
 }
-
-// Course Enrollment
-$courseEnrollment = $con->query("SELECT 
-    c.course_name,
-    COUNT(DISTINCT s.Id) as enrolled_students
-    FROM course c
-    LEFT JOIN student s ON c.course_name = s.course
-    GROUP BY c.course_id, c.course_name
-    ORDER BY enrolled_students DESC
-    LIMIT 10");
 
 $con->close();
 ?>

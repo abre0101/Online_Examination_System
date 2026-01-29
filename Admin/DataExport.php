@@ -16,7 +16,7 @@ if(isset($_GET['export'])) {
     switch($exportType) {
         case 'students':
             $filename = 'students_export_' . date('Y-m-d') . '.csv';
-            $result = $con->query("SELECT Id, Name, dept, semister, year, email, Status FROM student ORDER BY Id");
+            $result = $con->query("SELECT Id, Name, dept_name, semister, year, email, Status FROM student ORDER BY Id");
             $headers = array('Student ID', 'Name', 'Department', 'Semester', 'Year', 'Email', 'Status');
             break;
             
