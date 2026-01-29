@@ -78,11 +78,21 @@ $con->close();
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         .review-header {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
-            color: white;
+            background: white;
+            border: 2px solid var(--primary-color);
+            color: var(--text-primary);
             padding: 2rem;
             border-radius: var(--radius-lg);
             margin-bottom: 2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .review-header h1 {
+            color: var(--primary-color) !important;
+        }
+        
+        .review-header p {
+            color: var(--text-secondary) !important;
         }
         
         .review-stats {
@@ -93,21 +103,51 @@ $con->close();
         }
         
         .review-stat {
-            background: rgba(255, 255, 255, 0.15);
-            padding: 1rem;
+            background: var(--bg-light);
+            padding: 1.5rem;
             border-radius: var(--radius-md);
             text-align: center;
+            border: 2px solid #e0e0e0;
+            transition: all 0.3s ease;
+        }
+        
+        .review-stat:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .review-stat.stat-score {
+            border-color: var(--primary-color);
+            background: linear-gradient(135deg, rgba(0, 51, 102, 0.05) 0%, rgba(212, 175, 55, 0.05) 100%);
+        }
+        
+        .review-stat.stat-correct {
+            border-color: var(--success-color);
+            background: rgba(40, 167, 69, 0.05);
+        }
+        
+        .review-stat.stat-incorrect {
+            border-color: #dc3545;
+            background: rgba(220, 53, 69, 0.05);
+        }
+        
+        .review-stat.stat-unanswered {
+            border-color: #ffc107;
+            background: rgba(255, 193, 7, 0.05);
         }
         
         .review-stat-value {
-            font-size: 2rem;
+            font-size: 2.5rem;
             font-weight: 800;
             margin-bottom: 0.5rem;
         }
         
         .review-stat-label {
-            font-size: 0.9rem;
-            opacity: 0.9;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         
         .question-review {
@@ -223,20 +263,20 @@ $con->close();
                 <p style="margin: 0; opacity: 0.9;"><?php echo htmlspecialchars($result['exam_name']); ?> - <?php echo htmlspecialchars($courseName); ?></p>
                 
                 <div class="review-stats">
-                    <div class="review-stat">
-                        <div class="review-stat-value"><?php echo $result['Result']; ?>%</div>
+                    <div class="review-stat stat-score">
+                        <div class="review-stat-value" style="color: var(--primary-color);"><?php echo $result['Result']; ?>%</div>
                         <div class="review-stat-label">Your Score</div>
                     </div>
-                    <div class="review-stat">
-                        <div class="review-stat-value" style="color: #4ade80;"><?php echo $correctAnswers; ?></div>
+                    <div class="review-stat stat-correct">
+                        <div class="review-stat-value" style="color: var(--success-color);"><?php echo $correctAnswers; ?></div>
                         <div class="review-stat-label">Correct Answers</div>
                     </div>
-                    <div class="review-stat">
-                        <div class="review-stat-value" style="color: #f87171;"><?php echo $incorrectAnswers; ?></div>
+                    <div class="review-stat stat-incorrect">
+                        <div class="review-stat-value" style="color: #dc3545;"><?php echo $incorrectAnswers; ?></div>
                         <div class="review-stat-label">Incorrect Answers</div>
                     </div>
-                    <div class="review-stat">
-                        <div class="review-stat-value" style="color: #fbbf24;"><?php echo $unanswered; ?></div>
+                    <div class="review-stat stat-unanswered">
+                        <div class="review-stat-value" style="color: #f59e0b;"><?php echo $unanswered; ?></div>
                         <div class="review-stat-label">Unanswered</div>
                     </div>
                 </div>
