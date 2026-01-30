@@ -13,52 +13,262 @@ if(isset($_SESSION['username'])){
     <link href="../assets/css/admin-sidebar.css?v=<?php echo time(); ?>" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        .tabs-container {
+        .page-header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            gap: 2rem;
+        }
+        
+        .page-title-section h1 {
+            margin: 0 0 0.5rem 0;
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .page-title-section p {
+            margin: 0;
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+        }
+        
+        .btn-create-new {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: var(--radius-lg);
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.05rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 51, 102, 0.3);
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn-create-new:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 51, 102, 0.4);
+            background: linear-gradient(135deg, var(--primary-dark) 0%, #001a33 100%);
+        }
+        
+        .colleges-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        
+        .college-card {
             background: white;
             border-radius: var(--radius-lg);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            padding: 1.75rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            border: 2px solid #e8eef3;
+            position: relative;
             overflow: hidden;
         }
         
-        .tabs-header {
-            display: flex;
-            background: #f8f9fa;
-            border-bottom: 3px solid #e0e0e0;
+        .college-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, var(--primary-color) 0%, var(--secondary-color) 100%);
         }
         
-        .tab-btn {
-            flex: 1;
-            padding: 1.25rem 2rem;
-            background: transparent;
-            border: none;
-            font-size: 1.05rem;
-            font-weight: 600;
+        .college-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 24px rgba(0, 51, 102, 0.15);
+            border-color: var(--primary-color);
+        }
+        
+        .college-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin-bottom: 1.25rem;
+            box-shadow: 0 4px 12px rgba(0, 51, 102, 0.2);
+        }
+        
+        .college-id {
+            font-size: 0.85rem;
             color: var(--text-secondary);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .college-name {
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+            line-height: 1.3;
+        }
+        
+        .college-actions {
+            display: flex;
+            gap: 0.75rem;
+            padding-top: 1rem;
+            border-top: 2px solid #f0f4f8;
+        }
+        
+        .action-btn {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border-radius: var(--radius-md);
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .action-btn.edit {
+            background: linear-gradient(135deg, #28a745 0%, #218838 100%);
+            color: white;
+        }
+        
+        .action-btn.edit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+        }
+        
+        .action-btn.delete {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+        }
+        
+        .action-btn.delete:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: white;
+            border-radius: var(--radius-lg);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+        
+        .empty-state-icon {
+            font-size: 5rem;
+            margin-bottom: 1.5rem;
+            opacity: 0.5;
+        }
+        
+        .empty-state h3 {
+            font-size: 1.5rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .empty-state p {
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+        }
+        
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 2.5rem;
+            max-width: 550px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: modalSlideIn 0.3s ease;
+        }
+        
+        @keyframes modalSlideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 3px solid var(--secondary-color);
+        }
+        
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .modal-close {
+            background: #f0f4f8;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 1.5rem;
             cursor: pointer;
             transition: all 0.3s ease;
-            border-bottom: 3px solid transparent;
-            margin-bottom: -3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
-        .tab-btn:hover {
-            background: rgba(0, 51, 102, 0.05);
-            color: var(--primary-color);
-        }
-        
-        .tab-btn.active {
-            background: white;
-            color: var(--primary-color);
-            border-bottom-color: var(--secondary-color);
-            font-weight: 700;
-        }
-        
-        .tab-content {
-            display: none;
-            padding: 2rem;
-        }
-        
-        .tab-content.active {
-            display: block;
+        .modal-close:hover {
+            background: #dc3545;
+            color: white;
+            transform: rotate(90deg);
         }
         
         .form-group {
@@ -67,296 +277,205 @@ if(isset($_SESSION['username'])){
         
         .form-group label {
             display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
+            margin-bottom: 0.75rem;
+            font-weight: 700;
             color: var(--primary-color);
-            font-size: 1rem;
+            font-size: 1.05rem;
         }
         
         .form-group input[type="text"] {
             width: 100%;
-            padding: 0.875rem 1rem;
+            padding: 1rem 1.25rem;
             border: 2px solid #e0e0e0;
             border-radius: var(--radius-md);
-            font-size: 1rem;
+            font-size: 1.05rem;
             transition: all 0.3s ease;
+            font-family: 'Poppins', sans-serif;
         }
         
         .form-group input[type="text"]:focus {
             outline: none;
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(0, 51, 102, 0.1);
+            box-shadow: 0 0 0 4px rgba(0, 51, 102, 0.1);
         }
         
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 1rem;
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
         }
         
-        .data-table thead {
+        .btn-submit {
+            flex: 1;
+            padding: 1rem 2rem;
             background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
-        }
-        
-        .data-table th {
-            padding: 1rem;
-            text-align: left;
             color: white;
-            font-weight: 700;
-            font-size: 1rem;
-        }
-        
-        .data-table td {
-            padding: 1rem;
-            border-bottom: 1px solid #e0e0e0;
-            font-size: 0.95rem;
-        }
-        
-        .data-table tbody tr {
-            transition: all 0.3s ease;
-        }
-        
-        .data-table tbody tr:hover {
-            background: #f8f9fa;
-            transform: scale(1.01);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-        
-        .action-link {
-            padding: 0.5rem 1rem;
+            border: none;
             border-radius: var(--radius-md);
-            text-decoration: none;
-            font-weight: 600;
+            font-weight: 700;
+            font-size: 1.05rem;
+            cursor: pointer;
             transition: all 0.3s ease;
-            display: inline-block;
-            margin-right: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
         }
         
-        .action-link.edit {
-            background: #28a745;
-            color: white;
-        }
-        
-        .action-link.edit:hover {
-            background: #218838;
+        .btn-submit:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+            box-shadow: 0 6px 20px rgba(0, 51, 102, 0.3);
         }
         
-        .action-link.delete {
-            background: #dc3545;
-            color: white;
+        .btn-cancel {
+            padding: 1rem 2rem;
+            background: #f0f4f8;
+            color: var(--text-primary);
+            border: none;
+            border-radius: var(--radius-md);
+            font-weight: 700;
+            font-size: 1.05rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
         
-        .action-link.delete:hover {
-            background: #c82333;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+        .btn-cancel:hover {
+            background: #e0e0e0;
+        }
+        
+        @media (max-width: 768px) {
+            .page-header-actions {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .btn-create-new {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .colleges-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body class="admin-layout">
-    <!-- Left Sidebar -->
-    <aside class="admin-sidebar" id="adminSidebar">
-        <div class="sidebar-header">
-            <img src="../images/logo1.png" alt="Logo" class="sidebar-logo" onerror="this.style.display='none'">
-            <h2 class="sidebar-title">Admin Panel</h2>
-            <p class="sidebar-subtitle">Debre Markos University</p>
-            <button class="sidebar-toggle-btn" onclick="toggleSidebarMinimize()" title="Toggle Sidebar">
-                <span id="toggleIcon">◀</span>
-            </button>
-        </div>
-
-        <nav class="sidebar-nav">
-            <a href="index-modern.php" class="sidebar-nav-item">
-                <span class="sidebar-nav-icon">📊</span>
-                <span>Dashboard</span>
-            </a>
-            <a href="Faculty.php" class="sidebar-nav-item active">
-                <span class="sidebar-nav-icon">🏛️</span>
-                <span>College</span>
-            </a>
-            <a href="Department.php" class="sidebar-nav-item">
-                <span class="sidebar-nav-icon">🏢</span>
-                <span>Department</span>
-            </a>
-            <a href="Course.php" class="sidebar-nav-item">
-                <span class="sidebar-nav-icon">📚</span>
-                <span>Course</span>
-            </a>
-            <a href="ECommittee.php" class="sidebar-nav-item">
-                <span class="sidebar-nav-icon">👥</span>
-                <span>Exam Committee</span>
-            </a>
-            <a href="Instructor.php" class="sidebar-nav-item">
-                <span class="sidebar-nav-icon">👨‍🏫</span>
-                <span>Instructor</span>
-            </a>
-            <a href="Student-modern.php" class="sidebar-nav-item">
-                <span class="sidebar-nav-icon">👨‍🎓</span>
-                <span>Student</span>
-            </a>
-            <a href="SystemSettings.php" class="sidebar-nav-item">
-                <span class="sidebar-nav-icon">⚙️</span>
-                <span>System Settings</span>
-            </a>
-        </nav>
-
-        <div class="sidebar-footer">
-            <div class="sidebar-user">
-                <div class="sidebar-user-avatar">
-                    <?php echo strtoupper(substr($_SESSION['username'], 0, 1)); ?>
-                </div>
-                <div class="sidebar-user-info">
-                    <div class="sidebar-user-name"><?php echo $_SESSION['username']; ?></div>
-                    <div class="sidebar-user-role">Administrator</div>
-                </div>
-            </div>
-            <a href="Logout.php" class="btn btn-danger btn-block">
-                🚪 Logout
-            </a>
-        </div>
-    </aside>
+    <?php include 'sidebar-component.php'; ?>
 
     <!-- Main Content Area -->
     <div class="admin-main-content">
-        <!-- Enhanced Header -->
-        <header class="admin-header">
-            <div class="header-left">
-                <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
-                <div class="header-breadcrumb">
-                    <span class="breadcrumb-item">Admin</span>
-                    <span class="breadcrumb-separator">/</span>
-                    <span class="breadcrumb-item active">College</span>
-                </div>
-            </div>
-            
-            <div class="header-center">
-                <div class="header-search">
-                    <span class="search-icon">🔍</span>
-                    <input type="text" placeholder="Search students, courses, instructors..." class="search-input">
-                </div>
-            </div>
-            
-            <div class="header-right">
-                <div class="header-datetime">
-                    <div class="header-time" id="currentTime"></div>
-                    <div class="header-date"><?php echo date('D, M d, Y'); ?></div>
-                </div>
-                
-                <div class="header-notifications">
-                    <button class="header-icon-btn" title="Notifications">
-                        <span class="notification-icon">🔔</span>
-                        <span class="notification-badge">3</span>
-                    </button>
-                </div>
-                
-                <div class="header-profile" onclick="toggleProfileDropdown(event)">
-                    <div class="header-profile-avatar">
-                        <?php echo strtoupper(substr($_SESSION['username'], 0, 1)); ?>
-                    </div>
-                    <div class="header-profile-info">
-                        <div class="header-profile-name"><?php echo $_SESSION['username']; ?></div>
-                        <div class="header-profile-role">Administrator</div>
-                    </div>
-                    <button class="header-dropdown-btn">▼</button>
-                    
-                    <!-- Dropdown Menu -->
-                    <div class="profile-dropdown" id="profileDropdown">
-                        <a href="Profile.php" class="dropdown-item">
-                            <span class="dropdown-icon">👤</span>
-                            <span>My Profile</span>
-                        </a>
-                        <a href="EditProfile.php" class="dropdown-item">
-                            <span class="dropdown-icon">⚙️</span>
-                            <span>Settings</span>
-                        </a>
-                        <div class="dropdown-divider"></div>
-                        <a href="Logout.php" class="dropdown-item logout">
-                            <span class="dropdown-icon">🚪</span>
-                            <span>Logout</span>
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </header>
+        <?php 
+        $pageTitle = 'College Management';
+        include 'header-component.php'; 
+        ?>
 
         <div class="admin-content">
-            <!-- Page Title -->
-            <div class="page-header">
-                <h1>🏛️ College Management</h1>
-                <p>Create and manage colleges in the system</p>
+            <!-- Page Header with Action Button -->
+            <div class="page-header-actions">
+                <div class="page-title-section">
+                    <h1><span>🏛️</span> College Management</h1>
+                    <p>Create and manage colleges in the system</p>
+                </div>
+                <button class="btn-create-new" onclick="openCreateModal()">
+                    <span>➕</span> Create New College
+                </button>
             </div>
 
-            <!-- Tabs Container -->
-            <div class="tabs-container">
-                <div class="tabs-header">
-                    <button class="tab-btn active" onclick="switchTab(0)">➕ Create New College</button>
-                    <button class="tab-btn" onclick="switchTab(1)">📋 Display Colleges</button>
-                </div>
+            <!-- Colleges Display Grid -->
+            <div class="colleges-grid">
+                <?php
+                $con = new mysqli("localhost","root","","oes");
+                $sql = "SELECT * FROM faculty ORDER BY faculty_name ASC";
+                $result = $con->query($sql);
 
-                <!-- Tab 1: Create New College -->
-                <div class="tab-content active">
-                    <form method="post" action="InsertFaculty.php">
-                        <div class="form-group">
-                            <label for="txtID">College ID:</label>
-                            <input type="text" name="txtID" id="txtID" required placeholder="Enter College ID">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="txtFaculty">College Name:</label>
-                            <input type="text" name="txtFaculty" id="txtFaculty" required placeholder="Enter College Name">
-                        </div>
-                        
-                        <div class="form-group">
-                            <button type="submit" class="btn btn-primary">
-                                ✓ Submit
-                            </button>
-                        </div>
-                    </form>
+                if($result->num_rows > 0) {
+                    while($row = $result->fetch_array()) {
+                        $Id = $row['faculty_id'];
+                        $FacultyName = $row['faculty_name'];
+                ?>
+                <div class="college-card">
+                    <div class="college-icon">🏛️</div>
+                    <div class="college-id">ID: <?php echo $Id; ?></div>
+                    <div class="college-name"><?php echo $FacultyName; ?></div>
+                    <div class="college-actions">
+                        <a href="EditFaculty.php?FacId=<?php echo $Id; ?>" class="action-btn edit">
+                            <span>✏️</span> Edit
+                        </a>
+                        <a href="DeleteFaculty.php?FacId=<?php echo $Id; ?>" class="action-btn delete" onclick="return confirm('Are you sure you want to delete this college?')">
+                            <span>🗑️</span> Delete
+                        </a>
+                    </div>
                 </div>
-
-                <!-- Tab 2: Display Colleges -->
-                <div class="tab-content">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>College Name</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php
-                            $con = new mysqli("localhost","root","","oes");
-                            $sql = "select * from faculty";
-                            $result = $con->query($sql);
-
-                            while($row = $result->fetch_array())
-                            {
-                                $Id=$row['faculty_id'];
-                                $FacultyName=$row['faculty_name'];
-                            ?>
-                            <tr>
-                                <td><strong><?php echo $Id;?></strong></td>
-                                <td><?php echo $FacultyName;?></td>
-                                <td>
-                                    <a href="EditFaculty.php?FacId=<?php echo $Id;?>" class="action-link edit">✏️ Edit</a>
-                                    <a href="DeleteFaculty.php?FacId=<?php echo $Id;?>" class="action-link delete" onclick="return confirm('Are you sure you want to delete this college?')">🗑️ Delete</a>
-                                </td>
-                            </tr>
-                            <?php
-                            }
-                            $con->close();
-                            ?>
-                        </tbody>
-                    </table>
+                <?php
+                    }
+                } else {
+                ?>
+                <div class="empty-state" style="grid-column: 1 / -1;">
+                    <div class="empty-state-icon">🏛️</div>
+                    <h3>No Colleges Found</h3>
+                    <p>Click "Create New College" to add your first college</p>
                 </div>
+                <?php
+                }
+                $con->close();
+                ?>
             </div>
         </div>
     </div>
 
+    <!-- Create College Modal -->
+    <div class="modal" id="createModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><span>➕</span> Create New College</h2>
+                <button class="modal-close" onclick="closeCreateModal()">×</button>
+            </div>
+            <form method="post" action="InsertFaculty.php">
+                <div class="form-group">
+                    <label for="txtID">College ID:</label>
+                    <input type="text" name="txtID" id="txtID" required placeholder="Enter College ID (e.g., COL001)">
+                </div>
+                
+                <div class="form-group">
+                    <label for="txtFaculty">College Name:</label>
+                    <input type="text" name="txtFaculty" id="txtFaculty" required placeholder="Enter College Name">
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="btn-submit">
+                        <span>✓</span> Create College
+                    </button>
+                    <button type="button" class="btn-cancel" onclick="closeCreateModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script src="../assets/js/admin-sidebar.js?v=<?php echo time(); ?>"></script>
+    <script>
+        function openCreateModal() {
+            document.getElementById('createModal').classList.add('active');
+        }
+        
+        function closeCreateModal() {
+            document.getElementById('createModal').classList.remove('active');
+        }
+        
+        // Close modal when clicking outside
+        document.getElementById('createModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeCreateModal();
+            }
+        });
+        
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeCreateModal();
+            }
+        });
+    </script>
 </body>
 </html>
 <?php 

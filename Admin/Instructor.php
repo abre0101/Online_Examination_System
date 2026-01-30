@@ -6,10 +6,14 @@ if(!isset($_SESSION['username'])){
 }
 
 $con = mysqli_connect("localhost","root","","oes");
-$query_Recordsetd = "SELECT * From department";
+$query_Recordsetd = "SELECT * From department ORDER BY dept_name ASC";
 $Recordsetd = mysqli_query($con,$query_Recordsetd) or die(mysqli_error($con));
-$row_Recordsetd = mysqli_fetch_assoc($Recordsetd);
-$totalRows_Recordsetd = mysqli_num_rows($Recordsetd);
+$departments = [];
+if(mysqli_num_rows($Recordsetd) > 0) {
+    while($row = mysqli_fetch_assoc($Recordsetd)) {
+        $departments[] = $row;
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -17,133 +21,429 @@ $totalRows_Recordsetd = mysqli_num_rows($Recordsetd);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Instructor Management - Admin Dashboard</title>
-    <link href="../assets/css/modern-v2.css" rel="stylesheet">
-    <link href="../assets/css/admin-modern-v2.css" rel="stylesheet">
-    <link href="../assets/css/admin-sidebar.css" rel="stylesheet">
+    <link href="../assets/css/modern-v2.css?v=<?php echo time(); ?>" rel="stylesheet">
+    <link href="../assets/css/admin-modern-v2.css?v=<?php echo time(); ?>" rel="stylesheet">
+    <link href="../assets/css/admin-sidebar.css?v=<?php echo time(); ?>" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        .tabs-container {
+        .page-header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            gap: 2rem;
+        }
+        
+        .page-title-section h1 {
+            margin: 0 0 0.5rem 0;
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .page-title-section p {
+            margin: 0;
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+        }
+        
+        .btn-create-new {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: var(--radius-lg);
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.05rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 51, 102, 0.3);
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn-create-new:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 51, 102, 0.4);
+            background: linear-gradient(135deg, var(--primary-dark) 0%, #001a33 100%);
+        }
+        
+        .instructors-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        
+        .instructor-card {
             background: white;
             border-radius: var(--radius-lg);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            padding: 1.75rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            border: 2px solid #e8eef3;
+            position: relative;
             overflow: hidden;
         }
-        .tabs-header {
-            display: flex;
-            background: #f8f9fa;
-            border-bottom: 3px solid #e0e0e0;
+        
+        .instructor-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, #17a2b8 0%, #138496 100%);
         }
-        .tab-btn {
+        
+        .instructor-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 24px rgba(23, 162, 184, 0.15);
+            border-color: #17a2b8;
+        }
+        
+        .instructor-header {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+            margin-bottom: 1.25rem;
+            padding-bottom: 1.25rem;
+            border-bottom: 2px solid #f0f4f8;
+        }
+        
+        .instructor-avatar {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: 900;
+            color: white;
+            box-shadow: 0 4px 12px rgba(23, 162, 184, 0.3);
+            flex-shrink: 0;
+        }
+        
+        .instructor-info {
             flex: 1;
-            padding: 1.25rem 2rem;
-            background: transparent;
-            border: none;
-            font-size: 1.05rem;
-            font-weight: 600;
+            min-width: 0;
+        }
+        
+        .instructor-id {
+            font-size: 0.85rem;
             color: var(--text-secondary);
+            font-weight: 600;
+            margin-bottom: 0.35rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .instructor-name {
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            margin-bottom: 0.25rem;
+            line-height: 1.3;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .instructor-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.35rem 0.75rem;
+            border-radius: var(--radius-md);
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .instructor-status.active {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .instructor-status.inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .instructor-details {
+            margin-bottom: 1.25rem;
+        }
+        
+        .instructor-detail-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.65rem 0;
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+        }
+        
+        .instructor-detail-item .icon {
+            font-size: 1.1rem;
+            width: 24px;
+            text-align: center;
+        }
+        
+        .instructor-detail-item .value {
+            font-weight: 600;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .instructor-actions {
+            display: flex;
+            gap: 0.75rem;
+            padding-top: 1rem;
+            border-top: 2px solid #f0f4f8;
+        }
+        
+        .action-btn {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border-radius: var(--radius-md);
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .action-btn.edit {
+            background: linear-gradient(135deg, #28a745 0%, #218838 100%);
+            color: white;
+        }
+        
+        .action-btn.edit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+        }
+        
+        .action-btn.delete {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+        }
+        
+        .action-btn.delete:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: white;
+            border-radius: var(--radius-lg);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+        
+        .empty-state-icon {
+            font-size: 5rem;
+            margin-bottom: 1.5rem;
+            opacity: 0.5;
+        }
+        
+        .empty-state h3 {
+            font-size: 1.5rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .empty-state p {
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+        }
+        
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 2.5rem;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: modalSlideIn 0.3s ease;
+        }
+        
+        @keyframes modalSlideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 3px solid var(--secondary-color);
+        }
+        
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .modal-close {
+            background: #f0f4f8;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 1.5rem;
             cursor: pointer;
             transition: all 0.3s ease;
-            border-bottom: 3px solid transparent;
-            margin-bottom: -3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        .tab-btn:hover {
-            background: rgba(0, 51, 102, 0.05);
-            color: var(--primary-color);
+        
+        .modal-close:hover {
+            background: #dc3545;
+            color: white;
+            transform: rotate(90deg);
         }
-        .tab-btn.active {
-            background: white;
-            color: var(--primary-color);
-            border-bottom-color: var(--secondary-color);
-            font-weight: 700;
-        }
-        .tab-content {
-            display: none;
-            padding: 2rem;
-        }
-        .tab-content.active {
-            display: block;
-        }
+        
         .form-group {
             margin-bottom: 1.5rem;
         }
+        
         .form-group label {
             display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
+            margin-bottom: 0.75rem;
+            font-weight: 700;
             color: var(--primary-color);
-            font-size: 1rem;
+            font-size: 1.05rem;
         }
+        
         .form-group input[type="text"],
         .form-group input[type="email"],
         .form-group input[type="password"],
         .form-group select {
             width: 100%;
-            padding: 0.875rem 1rem;
+            padding: 1rem 1.25rem;
             border: 2px solid #e0e0e0;
             border-radius: var(--radius-md);
-            font-size: 1rem;
+            font-size: 1.05rem;
             transition: all 0.3s ease;
+            font-family: 'Poppins', sans-serif;
         }
+        
         .form-group input:focus,
         .form-group select:focus {
             outline: none;
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(0, 51, 102, 0.1);
+            box-shadow: 0 0 0 4px rgba(0, 51, 102, 0.1);
         }
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 1rem;
+        
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
         }
-        .data-table thead {
+        
+        .btn-submit {
+            flex: 1;
+            padding: 1rem 2rem;
             background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
-        }
-        .data-table th {
-            padding: 1rem;
-            text-align: left;
             color: white;
-            font-weight: 700;
-            font-size: 1rem;
-        }
-        .data-table td {
-            padding: 1rem;
-            border-bottom: 1px solid #e0e0e0;
-            font-size: 0.95rem;
-        }
-        .data-table tbody tr {
-            transition: all 0.3s ease;
-        }
-        .data-table tbody tr:hover {
-            background: #f8f9fa;
-            transform: scale(1.01);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-        .action-link {
-            padding: 0.5rem 1rem;
+            border: none;
             border-radius: var(--radius-md);
-            text-decoration: none;
-            font-weight: 600;
+            font-weight: 700;
+            font-size: 1.05rem;
+            cursor: pointer;
             transition: all 0.3s ease;
-            display: inline-block;
-            margin-right: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
         }
-        .action-link.edit {
-            background: #28a745;
-            color: white;
-        }
-        .action-link.edit:hover {
-            background: #218838;
+        
+        .btn-submit:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+            box-shadow: 0 6px 20px rgba(0, 51, 102, 0.3);
         }
-        .action-link.delete {
-            background: #dc3545;
-            color: white;
+        
+        .btn-cancel {
+            padding: 1rem 2rem;
+            background: #f0f4f8;
+            color: var(--text-primary);
+            border: none;
+            border-radius: var(--radius-md);
+            font-weight: 700;
+            font-size: 1.05rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
-        .action-link.delete:hover {
-            background: #c82333;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+        
+        .btn-cancel:hover {
+            background: #e0e0e0;
+        }
+        
+        @media (max-width: 768px) {
+            .page-header-actions {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .btn-create-new {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .instructors-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -151,136 +451,181 @@ $totalRows_Recordsetd = mysqli_num_rows($Recordsetd);
     <?php include 'sidebar-component.php'; ?>
 
     <div class="admin-main-content">
-        <?php include 'header-component.php'; ?>
+        <?php 
+        $pageTitle = 'Instructor Management';
+        include 'header-component.php'; 
+        ?>
 
         <div class="admin-content">
-            <div class="page-header">
-                <h1>👨‍🏫 Instructor Management</h1>
-                <p>Create and manage instructors in the system</p>
+            <!-- Page Header with Action Button -->
+            <div class="page-header-actions">
+                <div class="page-title-section">
+                    <h1><span>👨‍🏫</span> Instructor Management</h1>
+                    <p>Create and manage instructors in the system</p>
+                </div>
+                <button class="btn-create-new" onclick="openCreateModal()">
+                    <span>➕</span> Create New Instructor
+                </button>
             </div>
 
-            <div class="tabs-container">
-                <div class="tabs-header">
-                    <button class="tab-btn active" onclick="switchTab(0)">➕ Create New Instructor</button>
-                    <button class="tab-btn" onclick="switchTab(1)">📋 Display Instructors</button>
-                </div>
+            <!-- Instructors Display Grid -->
+            <div class="instructors-grid">
+                <?php
+                $con2 = mysqli_connect("localhost","root","","oes");
+                $sql = "SELECT * FROM instructor ORDER BY Inst_Name ASC";
+                $result = mysqli_query($con2,$sql);
 
-                <!-- Tab 1: Create New Instructor -->
-                <div class="tab-content active">
-                    <form method="post" action="InsertInstructor.php">
-                        <div class="form-group">
-                            <label for="instID">Instructor ID:</label>
-                            <input type="text" name="instID" id="instID" required placeholder="Enter Instructor ID">
+                if(mysqli_num_rows($result) > 0) {
+                    while($row = mysqli_fetch_array($result)) {
+                        $Id = $row['Inst_ID'];
+                        $Name = $row['Inst_Name'];
+                        $Email = $row['email'];
+                        $UserName = $row['username'];
+                        $Department = $row['dept_name'];
+                        $Status = $row['Status'];
+                        $initial = strtoupper(substr($Name, 0, 1));
+                ?>
+                <div class="instructor-card">
+                    <div class="instructor-header">
+                        <div class="instructor-avatar"><?php echo $initial; ?></div>
+                        <div class="instructor-info">
+                            <div class="instructor-id">ID: <?php echo $Id; ?></div>
+                            <div class="instructor-name" title="<?php echo $Name; ?>"><?php echo $Name; ?></div>
+                            <span class="instructor-status <?php echo strtolower($Status); ?>">
+                                <span><?php echo $Status === 'Active' ? '●' : '○'; ?></span>
+                                <?php echo $Status; ?>
+                            </span>
                         </div>
-                        
-                        <div class="form-group">
-                            <label for="instName">Instructor Name:</label>
-                            <input type="text" name="instName" id="instName" required placeholder="Enter Instructor Name">
+                    </div>
+                    <div class="instructor-details">
+                        <div class="instructor-detail-item">
+                            <span class="icon">📧</span>
+                            <span class="value" title="<?php echo $Email; ?>"><?php echo $Email; ?></span>
                         </div>
-                        
-                        <div class="form-group">
-                            <label for="instEmail">Email:</label>
-                            <input type="email" name="instEmail" id="instEmail" required placeholder="Enter Email Address">
+                        <div class="instructor-detail-item">
+                            <span class="icon">🏢</span>
+                            <span class="value"><?php echo $Department; ?></span>
                         </div>
-                        
-                        <div class="form-group">
-                            <label for="instUName">Username:</label>
-                            <input type="text" name="instUName" id="instUName" required placeholder="Enter Username">
+                        <div class="instructor-detail-item">
+                            <span class="icon">👤</span>
+                            <span class="value"><?php echo $UserName; ?></span>
                         </div>
-                        
-                        <div class="form-group">
-                            <label for="instPassword">Password:</label>
-                            <input type="password" name="instPassword" id="instPassword" required placeholder="Enter Password">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="cmbDept">Department:</label>
-                            <select name="cmbDept" id="cmbDept" required>
-                                <option value="">-- Select Department --</option>
-                                <?php
-                                do {  
-                                ?>
-                                <option value="<?php echo $row_Recordsetd['deptno']?>"><?php echo $row_Recordsetd['dept_name']?></option>
-                                <?php
-                                } while ($row_Recordsetd = mysqli_fetch_assoc($Recordsetd));
-                                $rows = mysqli_num_rows($Recordsetd);
-                                if($rows > 0) {
-                                    mysqli_data_seek($Recordsetd, 0);
-                                    $row_Recordsetd = mysqli_fetch_assoc($Recordsetd);
-                                }
-                                ?>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="cmbStatus">Status:</label>
-                            <select name="cmbStatus" id="cmbStatus" required>
-                                <option value="Active">Active</option>
-                                <option value="Inactive">Inactive</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <button type="submit" class="btn btn-primary">
-                                ✓ Submit
-                            </button>
-                        </div>
-                    </form>
+                    </div>
+                    <div class="instructor-actions">
+                        <a href="EditInstructor.php?Id=<?php echo $Id; ?>" class="action-btn edit">
+                            <span>✏️</span> Edit
+                        </a>
+                        <a href="DeleteInstructor.php?Id=<?php echo $Id; ?>" class="action-btn delete" onclick="return confirm('Are you sure you want to delete this instructor?')">
+                            <span>🗑️</span> Delete
+                        </a>
+                    </div>
                 </div>
-
-                <!-- Tab 2: Display Instructors -->
-                <div class="tab-content">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Name</th>
-                                <th>Email</th>
-                                <th>Department</th>
-                                <th>Username</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php
-                            $con2 = mysqli_connect("localhost","root","","oes");
-                            $sql = "select * from instructor";
-                            $result = mysqli_query($con2,$sql);
-
-                            while(@$row = mysqli_fetch_array($result))
-                            {
-                                $Id=$row['Inst_ID'];
-                                $Name=$row['Inst_Name'];
-                                $Email=$row['email'];
-                                $UserName=$row['username'];
-                                $Department=$row['dept_name'];
-                                $Status=$row['Status'];
-                            ?>
-                            <tr>
-                                <td><strong><?php echo $Id;?></strong></td>
-                                <td><?php echo $Name;?></td>
-                                <td><?php echo $Email;?></td>
-                                <td><?php echo $Department;?></td>
-                                <td><?php echo $UserName;?></td>
-                                <td><?php echo $Status;?></td>
-                                <td>
-                                    <a href="EditInstructor.php?Id=<?php echo $Id;?>" class="action-link edit">✏️ Edit</a>
-                                    <a href="DeleteInstructor.php?Id=<?php echo $Id;?>" class="action-link delete" onclick="return confirm('Are you sure you want to delete this instructor?')">🗑️ Delete</a>
-                                </td>
-                            </tr>
-                            <?php
-                            }
-                            mysqli_close($con2);
-                            ?>
-                        </tbody>
-                    </table>
+                <?php
+                    }
+                } else {
+                ?>
+                <div class="empty-state" style="grid-column: 1 / -1;">
+                    <div class="empty-state-icon">👨‍🏫</div>
+                    <h3>No Instructors Found</h3>
+                    <p>Click "Create New Instructor" to add your first instructor</p>
                 </div>
+                <?php
+                }
+                mysqli_close($con2);
+                ?>
             </div>
         </div>
     </div>
 
+    <!-- Create Instructor Modal -->
+    <div class="modal" id="createModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><span>➕</span> Create New Instructor</h2>
+                <button class="modal-close" onclick="closeCreateModal()">×</button>
+            </div>
+            <form method="post" action="InsertInstructor.php">
+                <div class="form-group">
+                    <label for="instID">Instructor ID:</label>
+                    <input type="text" name="instID" id="instID" required placeholder="Enter Instructor ID (e.g., INST001)">
+                </div>
+                
+                <div class="form-group">
+                    <label for="instName">Instructor Name:</label>
+                    <input type="text" name="instName" id="instName" required placeholder="Enter Full Name">
+                </div>
+                
+                <div class="form-group">
+                    <label for="instEmail">Email:</label>
+                    <input type="email" name="instEmail" id="instEmail" required placeholder="Enter Email Address">
+                </div>
+                
+                <div class="form-group">
+                    <label for="instUName">Username:</label>
+                    <input type="text" name="instUName" id="instUName" required placeholder="Enter Username">
+                </div>
+                
+                <div class="form-group">
+                    <label for="instPassword">Password:</label>
+                    <input type="password" name="instPassword" id="instPassword" required placeholder="Enter Password">
+                </div>
+                
+                <div class="form-group">
+                    <label for="cmbDept">Department:</label>
+                    <select name="cmbDept" id="cmbDept" required>
+                        <option value="">-- Select Department --</option>
+                        <?php
+                        foreach($departments as $dept) {
+                        ?>
+                        <option value="<?php echo $dept['deptno']?>"><?php echo $dept['dept_name']?></option>
+                        <?php
+                        }
+                        ?>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="cmbStatus">Status:</label>
+                    <select name="cmbStatus" id="cmbStatus" required>
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Inactive</option>
+                    </select>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="btn-submit">
+                        <span>✓</span> Create Instructor
+                    </button>
+                    <button type="button" class="btn-cancel" onclick="closeCreateModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script src="../assets/js/admin-sidebar.js?v=<?php echo time(); ?>"></script>
+    <script>
+        function openCreateModal() {
+            document.getElementById('createModal').classList.add('active');
+        }
+        
+        function closeCreateModal() {
+            document.getElementById('createModal').classList.remove('active');
+        }
+        
+        // Close modal when clicking outside
+        document.getElementById('createModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeCreateModal();
+            }
+        });
+        
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeCreateModal();
+            }
+        });
+    </script>
 </body>
 </html>
 <?php 

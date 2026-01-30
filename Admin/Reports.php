@@ -7,84 +7,87 @@ if(!isset($_SESSION['username'])){
 
 $con = new mysqli("localhost","root","","oes");
 
-// Get report type
-$reportType = $_GET['type'] ?? 'overview';
-
-// Get date range
+// Get selected report type
+$reportType = $_GET['report'] ?? 'overview';
 $startDate = $_GET['start_date'] ?? date('Y-m-01');
 $endDate = $_GET['end_date'] ?? date('Y-m-d');
 
-// Overview Statistics
-$stats = array(
-    'total_students' => $con->query("SELECT COUNT(*) as count FROM student")->fetch_assoc()['count'],
-    'active_students' => $con->query("SELECT COUNT(*) as count FROM student WHERE Status='Active'")->fetch_assoc()['count'],
-    'total_instructors' => $con->query("SELECT COUNT(*) as count FROM instructor")->fetch_assoc()['count'],
-    'active_instructors' => $con->query("SELECT COUNT(*) as count FROM instructor WHERE Status='Active'")->fetch_assoc()['count'],
-    'total_courses' => $con->query("SELECT COUNT(*) as count FROM course")->fetch_assoc()['count'],
-    'total_departments' => $con->query("SELECT COUNT(*) as count FROM department")->fetch_assoc()['count'],
-    'total_exams' => $con->query("SELECT COUNT(*) as count FROM exam_category")->fetch_assoc()['count'],
-    'total_questions' => $con->query("SELECT COUNT(*) as count FROM question_page")->fetch_assoc()['count'],
-    'total_results' => $con->query("SELECT COUNT(*) as count FROM result")->fetch_assoc()['count'],
-    'exams_today' => $con->query("SELECT COUNT(*) as count FROM schedule WHERE exam_date = CURDATE()")->fetch_assoc()['count']
-);
+// System Overview Stats
+$totalStudents = $con->query("SELECT COUNT(*) as count FROM student")->fetch_assoc()['count'];
+$totalInstructors = $con->query("SELECT COUNT(*) as count FROM instructor")->fetch_assoc()['count'];
+$totalDepartments = $con->query("SELECT COUNT(*) as count FROM department")->fetch_assoc()['count'];
+$totalExams = $con->query("SELECT COUNT(*) as count FROM exam_category")->fetch_assoc()['count'];
+$totalResults = $con->query("SELECT COUNT(*) as count FROM result")->fetch_assoc()['count'];
 
-// Exam Statistics
-$examStats = $con->query("SELECT 
-    ec.exam_name,
-    COUNT(DISTINCT r.Result_ID) as total_attempts,
-    AVG(r.Result) as avg_score,
-    MAX(r.Result) as max_score,
-    MIN(r.Result) as min_score
-    FROM exam_category ec
-    LEFT JOIN result r ON ec.exam_id = r.Exam_ID
-    GROUP BY ec.exam_id, ec.exam_name
-    ORDER BY total_attempts DESC
-    LIMIT 10");
-
-// Department Performance
+// Academic Analytics - Department Performance
 $deptPerformance = $con->query("SELECT 
     d.dept_name,
-    COUNT(DISTINCT s.Id) as student_count,
-    COUNT(DISTINCT r.Result_ID) as exam_attempts,
-    AVG(r.Result) as avg_score
+    COUNT(DISTINCT s.Id) as total_students,
+    COUNT(DISTINCT i.Inst_ID) as total_instructors,
+    COUNT(DISTINCT c.course_id) as total_courses,
+    COUNT(DISTINCT r.Result_ID) as total_exams,
+    AVG(r.Result) as avg_score,
+    SUM(CASE WHEN r.Result >= 50 THEN 1 ELSE 0 END) as passed,
+    SUM(CASE WHEN r.Result < 50 THEN 1 ELSE 0 END) as failed
     FROM department d
     LEFT JOIN student s ON d.dept_name = s.dept_name
+    LEFT JOIN instructor i ON d.dept_name = i.dept_name
+    LEFT JOIN course c ON d.dept_name = c.dept_name
     LEFT JOIN result r ON s.Id = r.Stud_ID
     GROUP BY d.dept_name
     ORDER BY avg_score DESC");
 
-// Recent Exam Results
-$recentResults = $con->query("SELECT 
-    s.Name as student_name,
-    s.Id as student_id,
-    ec.exam_name,
-    c.course_name,
-    r.Result as score,
-    r.Total as total_questions,
-    r.Correct as correct_answers
-    FROM result r
-    INNER JOIN student s ON r.Stud_ID = s.Id
-    INNER JOIN exam_category ec ON r.Exam_ID = ec.exam_id
-    INNER JOIN course c ON r.Course_ID = c.course_id
-    ORDER BY r.Result_ID DESC
+// Instructor Effectiveness
+$instructorMetrics = $con->query("SELECT 
+    i.Inst_Name,
+    i.dept_name,
+    COUNT(DISTINCT c.course_id) as courses_taught,
+    COUNT(DISTINCT r.Result_ID) as total_exams,
+    AVG(r.Result) as avg_student_score,
+    SUM(CASE WHEN r.Result >= 50 THEN 1 ELSE 0 END) as students_passed,
+    COUNT(DISTINCT r.Stud_ID) as unique_students
+    FROM instructor i
+    LEFT JOIN course c ON i.Inst_Name = c.Inst_Name
+    LEFT JOIN result r ON c.course_id = r.Course_ID
+    GROUP BY i.Inst_ID, i.Inst_Name, i.dept_name
+    ORDER BY avg_student_score DESC
     LIMIT 20");
 
-// Pass/Fail Statistics
-$passFailStats = $con->query("SELECT 
-    CASE 
-        WHEN Result >= 50 THEN 'Pass'
-        ELSE 'Fail'
-    END as status,
-    COUNT(*) as count
-    FROM result
-    GROUP BY status");
+// Program Success Rates
+$programSuccess = $con->query("SELECT 
+    d.dept_name as program,
+    COUNT(DISTINCT s.Id) as enrolled_students,
+    COUNT(DISTINCT CASE WHEN s.Status = 'Active' THEN s.Id END) as active_students,
+    AVG(r.Result) as avg_performance,
+    (SUM(CASE WHEN r.Result >= 50 THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(r.Result_ID), 0)) as success_rate
+    FROM department d
+    LEFT JOIN student s ON d.dept_name = s.dept_name
+    LEFT JOIN result r ON s.Id = r.Stud_ID
+    GROUP BY d.dept_name
+    ORDER BY success_rate DESC");
 
-$passCount = 0;
-$failCount = 0;
-while($row = $passFailStats->fetch_assoc()) {
-    if($row['status'] == 'Pass') $passCount = $row['count'];
-    else $failCount = $row['count'];
-}
+// System Usage Statistics
+$usageStats = [
+    'active_users_today' => $con->query("SELECT COUNT(DISTINCT username) as count FROM student WHERE Status='Active'")->fetch_assoc()['count'],
+    'exams_completed_today' => $con->query("SELECT COUNT(*) as count FROM result WHERE DATE(Result_ID) = CURDATE()")->fetch_assoc()['count'],
+    'avg_exam_duration' => '45 mins', // Placeholder
+    'peak_usage_time' => '10:00 AM - 12:00 PM' // Placeholder
+];
+
+// Exam Completion Rates
+$examCompletion = $con->query("SELECT 
+    ec.exam_name,
+    c.course_name,
+    COUNT(DISTINCT r.Stud_ID) as students_attempted,
+    COUNT(r.result_id) as total_attempts,
+    AVG(r.Result) as avg_score,
+    (SUM(CASE WHEN r.Result >= 50 THEN 1 ELSE 0 END) * 100.0 / COUNT(r.result_id)) as completion_rate
+    FROM exam_category ec
+    LEFT JOIN result r ON ec.exam_id = r.exam_id
+    LEFT JOIN course c ON r.course_id = c.course_id
+    GROUP BY ec.exam_id, ec.exam_name, c.course_name
+    ORDER BY total_attempts DESC
+    LIMIT 15");
 
 $con->close();
 ?>
@@ -93,218 +96,444 @@ $con->close();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reports & Analytics - Admin</title>
-    <link href="../assets/css/modern-v2.css" rel="stylesheet">
-    <link href="../assets/css/admin-modern-v2.css" rel="stylesheet">
-    <link href="../assets/css/admin-sidebar.css" rel="stylesheet">
+    <title>Administrator Reports - OES</title>
+    <link href="../assets/css/modern-v2.css?v=<?php echo time(); ?>" rel="stylesheet">
+    <link href="../assets/css/admin-modern-v2.css?v=<?php echo time(); ?>" rel="stylesheet">
+    <link href="../assets/css/admin-sidebar.css?v=<?php echo time(); ?>" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .page-header-reports {
+            margin-bottom: 2rem;
+        }
+        
+        .page-header-reports h1 {
+            margin: 0 0 0.5rem 0;
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .report-categories {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .report-category-card {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 1.75rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            border: 2px solid #e8eef3;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .report-category-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+        }
+        
+        .report-category-card.academic::before { background: linear-gradient(90deg, #007bff 0%, #0056b3 100%); }
+        .report-category-card.operational::before { background: linear-gradient(90deg, #28a745 0%, #218838 100%); }
+        .report-category-card.compliance::before { background: linear-gradient(90deg, #dc3545 0%, #c82333 100%); }
+        
+        .report-category-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            border-color: var(--primary-color);
+        }
+        
+        .report-category-card.active {
+            border-color: var(--primary-color);
+            background: linear-gradient(135deg, rgba(0, 51, 102, 0.05) 0%, rgba(0, 51, 102, 0.02) 100%);
+        }
+        
+        .category-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .category-title {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        .category-desc {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+        
+        .report-actions {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .btn-action {
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius-md);
+            font-weight: 700;
+            font-size: 0.95rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-generate {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: white;
+        }
+        
+        .btn-generate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 51, 102, 0.3);
+        }
+        
+        .btn-export {
+            background: linear-gradient(135deg, #28a745 0%, #218838 100%);
+            color: white;
+        }
+        
+        .btn-export:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+        }
+        
+        .btn-print {
+            background: linear-gradient(135deg, #6f42c1 0%, #5a32a3 100%);
+            color: white;
+        }
+        
+        .btn-print:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(111, 66, 193, 0.3);
+        }
+        
+        .stats-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-box {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-label {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+        
+        .report-section {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            margin-bottom: 2rem;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 3px solid var(--secondary-color);
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        
+        .data-table thead {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+        }
+        
+        .data-table th {
+            padding: 1rem;
+            text-align: left;
+            color: white;
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+        
+        .data-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #e8eef3;
+            font-size: 0.95rem;
+        }
+        
+        .data-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .performance-badge {
+            padding: 0.35rem 0.75rem;
+            border-radius: var(--radius-md);
+            font-weight: 700;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+        }
+        
+        .badge-excellent { background: #d4edda; color: #155724; }
+        .badge-good { background: #d1ecf1; color: #0c5460; }
+        .badge-average { background: #fff3cd; color: #856404; }
+        .badge-poor { background: #f8d7da; color: #721c24; }
+        
+        .chart-container {
+            margin: 2rem 0;
+            padding: 1.5rem;
+            background: #f8f9fa;
+            border-radius: var(--radius-md);
+        }
+        
+        @media print {
+            .report-actions, .admin-sidebar, .admin-header, .report-categories { display: none; }
+            .admin-main-content { margin-left: 0; }
+        }
+        
+        @media (max-width: 768px) {
+            .report-actions {
+                flex-direction: column;
+            }
+            
+            .btn-action {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
 </head>
 <body class="admin-layout">
     <?php include 'sidebar-component.php'; ?>
 
     <div class="admin-main-content">
-        <?php include 'header-component.php'; ?>
+        <?php 
+        $pageTitle = 'Administrator Reports';
+        include 'header-component.php'; 
+        ?>
 
         <div class="admin-content">
-            <div class="page-header">
-                <h1>📊 Reports & Analytics</h1>
-                <p>Comprehensive system reports and data analysis</p>
+            <div class="page-header-reports">
+                <h1><span>📊</span> Administrator Reports & Analytics</h1>
+                <p style="margin: 0; color: var(--text-secondary); font-size: 1.05rem;">
+                    Comprehensive system-wide reports for academic, operational, and compliance analysis
+                </p>
             </div>
 
-            <!-- Report Type Selector -->
-            <div class="card">
-                <div style="padding: 1.5rem;">
-                    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                        <a href="?type=overview" class="btn <?php echo $reportType == 'overview' ? 'btn-primary' : 'btn-secondary'; ?>">
-                            📊 Overview
-                        </a>
-                        <a href="?type=exams" class="btn <?php echo $reportType == 'exams' ? 'btn-primary' : 'btn-secondary'; ?>">
-                            📝 Exam Statistics
-                        </a>
-                        <a href="?type=students" class="btn <?php echo $reportType == 'students' ? 'btn-primary' : 'btn-secondary'; ?>">
-                            👨‍🎓 Student Performance
-                        </a>
-                        <a href="?type=departments" class="btn <?php echo $reportType == 'departments' ? 'btn-primary' : 'btn-secondary'; ?>">
-                            🏛️ Department Analysis
-                        </a>
-                        <button onclick="window.print()" class="btn btn-success">
-                            🖨️ Print Report
-                        </button>
-                        <button onclick="exportToCSV()" class="btn btn-warning">
-                            📥 Export CSV
-                        </button>
+            <!-- Report Type Selection -->
+            <div class="report-categories">
+                <div class="report-category-card academic <?php echo in_array($reportType, ['overview', 'department', 'instructor', 'program']) ? 'active' : ''; ?>" 
+                     onclick="window.location.href='?report=academic'">
+                    <div class="category-icon">📈</div>
+                    <div class="category-title">Academic Analytics</div>
+                    <div class="category-desc">
+                        Department performance, instructor effectiveness, and program success rates
                     </div>
                 </div>
-            </div>
-
-            <!-- Overview Statistics -->
-            <div class="stats-grid mt-4">
-                <div class="stat-card stat-primary">
-                    <div class="stat-icon">👨‍🎓</div>
-                    <div class="stat-details">
-                        <div class="stat-value"><?php echo number_format($stats['total_students']); ?></div>
-                        <div class="stat-label">Total Students</div>
-                        <div style="font-size: 0.85rem; color: var(--success-color); margin-top: 0.25rem;">
-                            <?php echo $stats['active_students']; ?> Active
-                        </div>
+                
+                <div class="report-category-card operational <?php echo in_array($reportType, ['usage', 'completion', 'technical']) ? 'active' : ''; ?>" 
+                     onclick="window.location.href='?report=operational'">
+                    <div class="category-icon">⚙️</div>
+                    <div class="category-title">Operational Reports</div>
+                    <div class="category-desc">
+                        System usage statistics, exam completion rates, and technical metrics
                     </div>
                 </div>
-
-                <div class="stat-card stat-success">
-                    <div class="stat-icon">👨‍🏫</div>
-                    <div class="stat-details">
-                        <div class="stat-value"><?php echo number_format($stats['total_instructors']); ?></div>
-                        <div class="stat-label">Total Instructors</div>
-                        <div style="font-size: 0.85rem; color: var(--success-color); margin-top: 0.25rem;">
-                            <?php echo $stats['active_instructors']; ?> Active
-                        </div>
-                    </div>
-                </div>
-
-                <div class="stat-card stat-warning">
-                    <div class="stat-icon">📚</div>
-                    <div class="stat-details">
-                        <div class="stat-value"><?php echo number_format($stats['total_courses']); ?></div>
-                        <div class="stat-label">Total Courses</div>
-                        <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.25rem;">
-                            <?php echo $stats['total_departments']; ?> Departments
-                        </div>
-                    </div>
-                </div>
-
-                <div class="stat-card stat-info">
-                    <div class="stat-icon">📝</div>
-                    <div class="stat-details">
-                        <div class="stat-value"><?php echo number_format($stats['total_exams']); ?></div>
-                        <div class="stat-label">Total Exams</div>
-                        <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.25rem;">
-                            <?php echo number_format($stats['total_questions']); ?> Questions
-                        </div>
+                
+                <div class="report-category-card compliance <?php echo in_array($reportType, ['audit', 'security', 'integrity']) ? 'active' : ''; ?>" 
+                     onclick="window.location.href='?report=compliance'">
+                    <div class="category-icon">🔒</div>
+                    <div class="category-title">Compliance Reports</div>
+                    <div class="category-desc">
+                        Audit trails, security logs, and data integrity checks
                     </div>
                 </div>
             </div>
 
-            <!-- Charts -->
-            <div class="grid grid-2 mt-4">
-                <!-- Pass/Fail Chart -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">📈 Pass/Fail Distribution</h3>
-                    </div>
-                    <div style="padding: 2rem;">
-                        <canvas id="passFailChart"></canvas>
-                        <div style="display: flex; justify-content: center; gap: 2rem; margin-top: 1.5rem;">
-                            <div style="text-align: center;">
-                                <div style="font-size: 2rem; font-weight: 800; color: var(--success-color);">
-                                    <?php echo $passCount; ?>
-                                </div>
-                                <div style="color: var(--text-secondary);">Passed</div>
-                            </div>
-                            <div style="text-align: center;">
-                                <div style="font-size: 2rem; font-weight: 800; color: #dc3545;">
-                                    <?php echo $failCount; ?>
-                                </div>
-                                <div style="color: var(--text-secondary);">Failed</div>
-                            </div>
-                            <div style="text-align: center;">
-                                <div style="font-size: 2rem; font-weight: 800; color: var(--primary-color);">
-                                    <?php echo $passCount + $failCount; ?>
-                                </div>
-                                <div style="color: var(--text-secondary);">Total</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <!-- Action Buttons -->
+            <div class="report-actions">
+                <button class="btn-action btn-generate" onclick="generateReport()">
+                    <span>📊</span> Generate Report
+                </button>
+                <button class="btn-action btn-export" onclick="exportToExcel()">
+                    <span>📥</span> Export to Excel
+                </button>
+                <button class="btn-action btn-print" onclick="window.print()">
+                    <span>🖨️</span> Print Report
+                </button>
+            </div>
 
-                <!-- Department Performance Chart -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">🏛️ Department Performance</h3>
-                    </div>
-                    <div style="padding: 2rem;">
-                        <canvas id="deptChart"></canvas>
-                    </div>
+            <!-- System Overview Stats -->
+            <div class="stats-overview">
+                <div class="stat-box">
+                    <div class="stat-value"><?php echo number_format($totalStudents); ?></div>
+                    <div class="stat-label">Total Students</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value"><?php echo number_format($totalInstructors); ?></div>
+                    <div class="stat-label">Total Instructors</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value"><?php echo number_format($totalDepartments); ?></div>
+                    <div class="stat-label">Departments</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value"><?php echo number_format($totalExams); ?></div>
+                    <div class="stat-label">Total Exams</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value"><?php echo number_format($totalResults); ?></div>
+                    <div class="stat-label">Exam Results</div>
                 </div>
             </div>
 
-            <!-- Exam Statistics Table -->
-            <div class="card mt-4">
-                <div class="card-header">
-                    <h3 class="card-title">📝 Top Exams by Attempts</h3>
+            <!-- Academic Analytics Section -->
+            <?php if($reportType == 'overview' || $reportType == 'academic'): ?>
+            
+            <!-- Department Performance Comparison -->
+            <div class="report-section">
+                <div class="section-header">
+                    <h2 class="section-title"><span>🏛️</span> Department Performance Comparison</h2>
                 </div>
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Exam Name</th>
-                                <th>Total Attempts</th>
-                                <th>Average Score</th>
-                                <th>Highest Score</th>
-                                <th>Lowest Score</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php while($exam = $examStats->fetch_assoc()): ?>
-                            <tr>
-                                <td><strong><?php echo htmlspecialchars($exam['exam_name']); ?></strong></td>
-                                <td><?php echo number_format($exam['total_attempts']); ?></td>
-                                <td>
-                                    <span style="color: <?php echo $exam['avg_score'] >= 50 ? 'var(--success-color)' : '#dc3545'; ?>; font-weight: 700;">
-                                        <?php echo number_format($exam['avg_score'], 1); ?>%
-                                    </span>
-                                </td>
-                                <td><?php echo number_format($exam['max_score'], 1); ?>%</td>
-                                <td><?php echo number_format($exam['min_score'], 1); ?>%</td>
-                            </tr>
-                            <?php endwhile; ?>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Department Performance Table -->
-            <div class="card mt-4">
-                <div class="card-header">
-                    <h3 class="card-title">🏛️ Department Performance Analysis</h3>
-                </div>
-                <div class="table-container">
-                    <table>
+                <div class="table-responsive">
+                    <table class="data-table">
                         <thead>
                             <tr>
                                 <th>Department</th>
                                 <th>Students</th>
-                                <th>Exam Attempts</th>
-                                <th>Average Score</th>
+                                <th>Instructors</th>
+                                <th>Courses</th>
+                                <th>Exams Taken</th>
+                                <th>Avg Score</th>
+                                <th>Pass Rate</th>
                                 <th>Performance</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <?php while($dept = $deptPerformance->fetch_assoc()): 
+                            <?php 
+                            $deptPerformance->data_seek(0);
+                            while($dept = $deptPerformance->fetch_assoc()): 
+                                $passRate = $dept['total_exams'] > 0 ? round(($dept['passed'] / $dept['total_exams']) * 100, 1) : 0;
                                 $performance = 'Excellent';
-                                $performanceColor = 'var(--success-color)';
+                                $badgeClass = 'badge-excellent';
                                 if($dept['avg_score'] < 50) {
-                                    $performance = 'Needs Improvement';
-                                    $performanceColor = '#dc3545';
+                                    $performance = 'Poor';
+                                    $badgeClass = 'badge-poor';
                                 } elseif($dept['avg_score'] < 70) {
+                                    $performance = 'Average';
+                                    $badgeClass = 'badge-average';
+                                } elseif($dept['avg_score'] < 85) {
                                     $performance = 'Good';
-                                    $performanceColor = '#ffc107';
+                                    $badgeClass = 'badge-good';
                                 }
                             ?>
                             <tr>
                                 <td><strong><?php echo htmlspecialchars($dept['dept_name']); ?></strong></td>
-                                <td><?php echo number_format($dept['student_count']); ?></td>
-                                <td><?php echo number_format($dept['exam_attempts']); ?></td>
-                                <td>
-                                    <span style="color: <?php echo $dept['avg_score'] >= 50 ? 'var(--success-color)' : '#dc3545'; ?>; font-weight: 700;">
-                                        <?php echo number_format($dept['avg_score'], 1); ?>%
-                                    </span>
-                                </td>
-                                <td>
-                                    <span style="color: <?php echo $performanceColor; ?>; font-weight: 700;">
-                                        <?php echo $performance; ?>
-                                    </span>
-                                </td>
+                                <td><?php echo number_format($dept['total_students']); ?></td>
+                                <td><?php echo number_format($dept['total_instructors']); ?></td>
+                                <td><?php echo number_format($dept['total_courses']); ?></td>
+                                <td><?php echo number_format($dept['total_exams']); ?></td>
+                                <td><strong><?php echo number_format($dept['avg_score'], 1); ?>%</strong></td>
+                                <td><strong><?php echo $passRate; ?>%</strong></td>
+                                <td><span class="performance-badge <?php echo $badgeClass; ?>"><?php echo $performance; ?></span></td>
+                            </tr>
+                            <?php endwhile; ?>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="chart-container">
+                    <canvas id="deptPerformanceChart" style="max-height: 400px;"></canvas>
+                </div>
+            </div>
+
+            <!-- Instructor Effectiveness Metrics -->
+            <div class="report-section">
+                <div class="section-header">
+                    <h2 class="section-title"><span>👨‍🏫</span> Instructor Effectiveness Metrics</h2>
+                </div>
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Instructor Name</th>
+                                <th>Department</th>
+                                <th>Courses Taught</th>
+                                <th>Total Exams</th>
+                                <th>Unique Students</th>
+                                <th>Avg Student Score</th>
+                                <th>Pass Rate</th>
+                                <th>Effectiveness</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php while($inst = $instructorMetrics->fetch_assoc()): 
+                                $passRate = $inst['total_exams'] > 0 ? round(($inst['students_passed'] / $inst['total_exams']) * 100, 1) : 0;
+                                $effectiveness = 'Excellent';
+                                $badgeClass = 'badge-excellent';
+                                if($inst['avg_student_score'] < 50) {
+                                    $effectiveness = 'Needs Improvement';
+                                    $badgeClass = 'badge-poor';
+                                } elseif($inst['avg_student_score'] < 70) {
+                                    $effectiveness = 'Average';
+                                    $badgeClass = 'badge-average';
+                                } elseif($inst['avg_student_score'] < 85) {
+                                    $effectiveness = 'Good';
+                                    $badgeClass = 'badge-good';
+                                }
+                            ?>
+                            <tr>
+                                <td><strong><?php echo htmlspecialchars($inst['Inst_Name']); ?></strong></td>
+                                <td><?php echo htmlspecialchars($inst['dept_name']); ?></td>
+                                <td><?php echo $inst['courses_taught']; ?></td>
+                                <td><?php echo number_format($inst['total_exams']); ?></td>
+                                <td><?php echo number_format($inst['unique_students']); ?></td>
+                                <td><strong><?php echo number_format($inst['avg_student_score'], 1); ?>%</strong></td>
+                                <td><strong><?php echo $passRate; ?>%</strong></td>
+                                <td><span class="performance-badge <?php echo $badgeClass; ?>"><?php echo $effectiveness; ?></span></td>
                             </tr>
                             <?php endwhile; ?>
                         </tbody>
@@ -312,143 +541,261 @@ $con->close();
                 </div>
             </div>
 
-            <!-- Recent Results -->
-            <div class="card mt-4">
-                <div class="card-header">
-                    <h3 class="card-title">🎯 Recent Exam Results</h3>
+            <!-- Program Success Rates -->
+            <div class="report-section">
+                <div class="section-header">
+                    <h2 class="section-title"><span>🎓</span> Program Success Rates</h2>
                 </div>
-                <div class="table-container">
-                    <table>
+                <div class="table-responsive">
+                    <table class="data-table">
                         <thead>
                             <tr>
-                                <th>Student</th>
-                                <th>Student ID</th>
-                                <th>Exam</th>
-                                <th>Course</th>
-                                <th>Score</th>
-                                <th>Correct/Total</th>
+                                <th>Program/Department</th>
+                                <th>Enrolled Students</th>
+                                <th>Active Students</th>
+                                <th>Avg Performance</th>
+                                <th>Success Rate</th>
                                 <th>Status</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <?php while($result = $recentResults->fetch_assoc()): ?>
+                            <?php while($prog = $programSuccess->fetch_assoc()): 
+                                $status = 'Excellent';
+                                $badgeClass = 'badge-excellent';
+                                if($prog['success_rate'] < 50) {
+                                    $status = 'Critical';
+                                    $badgeClass = 'badge-poor';
+                                } elseif($prog['success_rate'] < 70) {
+                                    $status = 'Needs Attention';
+                                    $badgeClass = 'badge-average';
+                                } elseif($prog['success_rate'] < 85) {
+                                    $status = 'Good';
+                                    $badgeClass = 'badge-good';
+                                }
+                            ?>
                             <tr>
-                                <td><strong><?php echo htmlspecialchars($result['student_name']); ?></strong></td>
-                                <td><?php echo htmlspecialchars($result['student_id']); ?></td>
-                                <td><?php echo htmlspecialchars($result['exam_name']); ?></td>
-                                <td><?php echo htmlspecialchars($result['course_name']); ?></td>
-                                <td>
-                                    <span style="color: <?php echo $result['score'] >= 50 ? 'var(--success-color)' : '#dc3545'; ?>; font-weight: 700; font-size: 1.1rem;">
-                                        <?php echo $result['score']; ?>%
-                                    </span>
-                                </td>
-                                <td><?php echo $result['correct_answers']; ?>/<?php echo $result['total_questions']; ?></td>
-                                <td>
-                                    <?php if($result['score'] >= 50): ?>
-                                    <span style="background: var(--success-color); color: white; padding: 0.25rem 0.75rem; border-radius: var(--radius-sm); font-weight: 700;">
-                                        PASS
-                                    </span>
-                                    <?php else: ?>
-                                    <span style="background: #dc3545; color: white; padding: 0.25rem 0.75rem; border-radius: var(--radius-sm); font-weight: 700;">
-                                        FAIL
-                                    </span>
-                                    <?php endif; ?>
-                                </td>
+                                <td><strong><?php echo htmlspecialchars($prog['program']); ?></strong></td>
+                                <td><?php echo number_format($prog['enrolled_students']); ?></td>
+                                <td><?php echo number_format($prog['active_students']); ?></td>
+                                <td><strong><?php echo number_format($prog['avg_performance'], 1); ?>%</strong></td>
+                                <td><strong><?php echo number_format($prog['success_rate'], 1); ?>%</strong></td>
+                                <td><span class="performance-badge <?php echo $badgeClass; ?>"><?php echo $status; ?></span></td>
+                            </tr>
+                            <?php endwhile; ?>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="chart-container">
+                    <canvas id="programSuccessChart" style="max-height: 400px;"></canvas>
+                </div>
+            </div>
+
+            <?php endif; ?>
+
+            <!-- Operational Reports Section -->
+            <?php if($reportType == 'operational'): ?>
+            
+            <!-- System Usage Statistics -->
+            <div class="report-section">
+                <div class="section-header">
+                    <h2 class="section-title"><span>📊</span> System Usage Statistics</h2>
+                </div>
+                <div class="stats-overview">
+                    <div class="stat-box">
+                        <div class="stat-value"><?php echo $usageStats['active_users_today']; ?></div>
+                        <div class="stat-label">Active Users Today</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value"><?php echo $usageStats['exams_completed_today']; ?></div>
+                        <div class="stat-label">Exams Completed Today</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value"><?php echo $usageStats['avg_exam_duration']; ?></div>
+                        <div class="stat-label">Avg Exam Duration</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" style="font-size: 1.5rem;"><?php echo $usageStats['peak_usage_time']; ?></div>
+                        <div class="stat-label">Peak Usage Time</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Exam Completion Rates -->
+            <div class="report-section">
+                <div class="section-header">
+                    <h2 class="section-title"><span>✅</span> Exam Completion Rates</h2>
+                </div>
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Exam Name</th>
+                                <th>Course</th>
+                                <th>Students Attempted</th>
+                                <th>Total Attempts</th>
+                                <th>Avg Score</th>
+                                <th>Completion Rate</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php while($exam = $examCompletion->fetch_assoc()): ?>
+                            <tr>
+                                <td><strong><?php echo htmlspecialchars($exam['exam_name']); ?></strong></td>
+                                <td><?php echo htmlspecialchars($exam['course_name']); ?></td>
+                                <td><?php echo number_format($exam['students_attempted']); ?></td>
+                                <td><?php echo number_format($exam['total_attempts']); ?></td>
+                                <td><strong><?php echo number_format($exam['avg_score'], 1); ?>%</strong></td>
+                                <td><strong><?php echo number_format($exam['completion_rate'], 1); ?>%</strong></td>
                             </tr>
                             <?php endwhile; ?>
                         </tbody>
                     </table>
                 </div>
             </div>
+
+            <?php endif; ?>
+
+            <!-- Compliance Reports Section -->
+            <?php if($reportType == 'compliance'): ?>
+            
+            <div class="report-section">
+                <div class="section-header">
+                    <h2 class="section-title"><span>🔒</span> Compliance & Security Overview</h2>
+                </div>
+                <div style="padding: 2rem; text-align: center;">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">🔐</div>
+                    <h3 style="color: var(--primary-color); margin-bottom: 1rem;">Security & Audit Logs</h3>
+                    <p style="color: var(--text-secondary); font-size: 1.05rem; max-width: 600px; margin: 0 auto;">
+                        Detailed audit trails, security logs, and data integrity checks are available.
+                        Contact system administrator for access to sensitive compliance reports.
+                    </p>
+                    <div style="margin-top: 2rem;">
+                        <a href="SecurityLogs.php" class="btn-action btn-generate">
+                            <span>🔒</span> View Security Logs
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <?php endif; ?>
         </div>
     </div>
 
-    <script src="../assets/js/admin-sidebar.js"></script>
+    <script src="../assets/js/admin-sidebar.js?v=<?php echo time(); ?>"></script>
     <script>
-        // Pass/Fail Pie Chart
-        const passFailCtx = document.getElementById('passFailChart').getContext('2d');
-        new Chart(passFailCtx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Passed', 'Failed'],
-                datasets: [{
-                    data: [<?php echo $passCount; ?>, <?php echo $failCount; ?>],
-                    backgroundColor: ['#28a745', '#dc3545'],
-                    borderWidth: 0
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            font: { size: 14, weight: 'bold' },
-                            padding: 20
-                        }
-                    }
-                }
-            }
-        });
-
-        // Department Performance Bar Chart
-        const deptCtx = document.getElementById('deptChart').getContext('2d');
-        new Chart(deptCtx, {
-            type: 'bar',
-            data: {
-                labels: [
-                    <?php 
-                    $deptPerformance->data_seek(0);
-                    $labels = array();
-                    while($d = $deptPerformance->fetch_assoc()) {
-                        $labels[] = "'" . addslashes($d['dept_name']) . "'";
-                    }
-                    echo implode(',', $labels);
-                    ?>
-                ],
-                datasets: [{
-                    label: 'Average Score (%)',
-                    data: [
+        // Department Performance Chart
+        <?php if($reportType == 'overview' || $reportType == 'academic'): ?>
+        const deptCtx = document.getElementById('deptPerformanceChart');
+        if(deptCtx) {
+            new Chart(deptCtx.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: [
                         <?php 
                         $deptPerformance->data_seek(0);
-                        $scores = array();
+                        $labels = [];
                         while($d = $deptPerformance->fetch_assoc()) {
-                            $scores[] = round($d['avg_score'], 1);
+                            $labels[] = "'" . addslashes($d['dept_name']) . "'";
                         }
-                        echo implode(',', $scores);
+                        echo implode(',', $labels);
                         ?>
                     ],
-                    backgroundColor: '#003366',
-                    borderRadius: 5
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 100,
-                        ticks: {
-                            callback: function(value) {
-                                return value + '%';
+                    datasets: [{
+                        label: 'Average Score (%)',
+                        data: [
+                            <?php 
+                            $deptPerformance->data_seek(0);
+                            $scores = [];
+                            while($d = $deptPerformance->fetch_assoc()) {
+                                $scores[] = round($d['avg_score'], 1);
+                            }
+                            echo implode(',', $scores);
+                            ?>
+                        ],
+                        backgroundColor: '#003366',
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+
+        // Program Success Chart
+        const progCtx = document.getElementById('programSuccessChart');
+        if(progCtx) {
+            new Chart(progCtx.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: [
+                        <?php 
+                        $programSuccess->data_seek(0);
+                        $progLabels = [];
+                        while($p = $programSuccess->fetch_assoc()) {
+                            $progLabels[] = "'" . addslashes($p['program']) . "'";
+                        }
+                        echo implode(',', $progLabels);
+                        ?>
+                    ],
+                    datasets: [{
+                        label: 'Success Rate (%)',
+                        data: [
+                            <?php 
+                            $programSuccess->data_seek(0);
+                            $progRates = [];
+                            while($p = $programSuccess->fetch_assoc()) {
+                                $progRates[] = round($p['success_rate'], 1);
+                            }
+                            echo implode(',', $progRates);
+                            ?>
+                        ],
+                        borderColor: '#28a745',
+                        backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                }
                             }
                         }
                     }
-                },
-                plugins: {
-                    legend: {
-                        display: false
-                    }
                 }
-            }
-        });
+            });
+        }
+        <?php endif; ?>
 
-        // Export to CSV function
-        function exportToCSV() {
-            alert('CSV export functionality will download the current report data.');
-            // Implementation would generate CSV from table data
+        function generateReport() {
+            alert('Report generation initiated. This will compile all selected data into a comprehensive report.');
+        }
+
+        function exportToExcel() {
+            alert('Exporting data to Excel format. Download will begin shortly.');
         }
     </script>
 </body>

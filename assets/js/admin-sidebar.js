@@ -15,27 +15,6 @@ function updateTime() {
 updateTime();
 setInterval(updateTime, 1000);
 
-// Toggle sidebar for mobile
-function toggleSidebar() {
-    document.querySelector('.admin-sidebar').classList.toggle('open');
-}
-
-// Toggle profile dropdown
-function toggleProfileDropdown(event) {
-    const profile = event ? event.currentTarget : document.querySelector('.header-profile');
-    if (profile) {
-        profile.classList.toggle('active');
-    }
-}
-
-// Close dropdown when clicking outside
-document.addEventListener('click', function (event) {
-    const profile = document.querySelector('.header-profile');
-    if (profile && !profile.contains(event.target)) {
-        profile.classList.remove('active');
-    }
-});
-
 // Toggle sidebar minimize/maximize
 function toggleSidebarMinimize() {
     const sidebar = document.getElementById('adminSidebar');
@@ -51,6 +30,20 @@ function toggleSidebarMinimize() {
     } else {
         toggleIcon.textContent = '◀';
         localStorage.setItem('sidebarMinimized', 'false');
+    }
+}
+
+// Toggle sidebar for mobile
+function toggleSidebar() {
+    const sidebar = document.querySelector('.admin-sidebar');
+    if (sidebar) {
+        // On mobile, toggle the 'open' class
+        if (window.innerWidth <= 1024) {
+            sidebar.classList.toggle('open');
+        } else {
+            // On desktop, use the minimize function
+            toggleSidebarMinimize();
+        }
     }
 }
 
@@ -151,5 +144,24 @@ document.addEventListener('click', function (event) {
         if (!sidebar.contains(event.target) && !menuBtn.contains(event.target)) {
             sidebar.classList.remove('open');
         }
+    }
+});
+
+// Toggle profile dropdown
+function toggleProfileDropdown(event) {
+    if (event) {
+        event.stopPropagation();
+    }
+    const profile = event ? event.currentTarget : document.querySelector('.header-profile');
+    if (profile) {
+        profile.classList.toggle('active');
+    }
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function (event) {
+    const profile = document.querySelector('.header-profile');
+    if (profile && !profile.contains(event.target)) {
+        profile.classList.remove('active');
     }
 });

@@ -11,10 +11,14 @@ if ($con->connect_error) {
     die("Connection failed: " . $con->connect_error);
 }
 
-$query_Recordsetd = "SELECT * From faculty";
+$query_Recordsetd = "SELECT * From faculty ORDER BY faculty_name ASC";
 $Recordsetd = $con->query($query_Recordsetd);
-$row_Recordsetd = $Recordsetd->fetch_assoc();
-$totalRows_Recordsetd = $Recordsetd->num_rows;
+$faculties = [];
+if($Recordsetd->num_rows > 0) {
+    while($row = $Recordsetd->fetch_assoc()) {
+        $faculties[] = $row;
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -22,131 +26,370 @@ $totalRows_Recordsetd = $Recordsetd->num_rows;
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Department Management - Admin Dashboard</title>
-    <link href="../assets/css/modern-v2.css" rel="stylesheet">
-    <link href="../assets/css/admin-modern-v2.css" rel="stylesheet">
-    <link href="../assets/css/admin-sidebar.css" rel="stylesheet">
+    <link href="../assets/css/modern-v2.css?v=<?php echo time(); ?>" rel="stylesheet">
+    <link href="../assets/css/admin-modern-v2.css?v=<?php echo time(); ?>" rel="stylesheet">
+    <link href="../assets/css/admin-sidebar.css?v=<?php echo time(); ?>" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        .tabs-container {
+        .page-header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            gap: 2rem;
+        }
+        
+        .page-title-section h1 {
+            margin: 0 0 0.5rem 0;
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .page-title-section p {
+            margin: 0;
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+        }
+        
+        .btn-create-new {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: var(--radius-lg);
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.05rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 51, 102, 0.3);
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn-create-new:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 51, 102, 0.4);
+            background: linear-gradient(135deg, var(--primary-dark) 0%, #001a33 100%);
+        }
+        
+        .departments-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        
+        .department-card {
             background: white;
             border-radius: var(--radius-lg);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            padding: 1.75rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            border: 2px solid #e8eef3;
+            position: relative;
             overflow: hidden;
         }
-        .tabs-header {
-            display: flex;
-            background: #f8f9fa;
-            border-bottom: 3px solid #e0e0e0;
+        
+        .department-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, #28a745 0%, #20c997 100%);
         }
-        .tab-btn {
-            flex: 1;
-            padding: 1.25rem 2rem;
-            background: transparent;
-            border: none;
-            font-size: 1.05rem;
+        
+        .department-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 24px rgba(40, 167, 69, 0.15);
+            border-color: #28a745;
+        }
+        
+        .department-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin-bottom: 1.25rem;
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.2);
+        }
+        
+        .department-id {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .department-name {
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            margin-bottom: 0.75rem;
+            line-height: 1.3;
+        }
+        
+        .department-college {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: #f0f4f8;
+            border-radius: var(--radius-md);
+            font-size: 0.9rem;
             font-weight: 600;
             color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+        }
+        
+        .department-actions {
+            display: flex;
+            gap: 0.75rem;
+            padding-top: 1rem;
+            border-top: 2px solid #f0f4f8;
+        }
+        
+        .action-btn {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border-radius: var(--radius-md);
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .action-btn.edit {
+            background: linear-gradient(135deg, #28a745 0%, #218838 100%);
+            color: white;
+        }
+        
+        .action-btn.edit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+        }
+        
+        .action-btn.delete {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+        }
+        
+        .action-btn.delete:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: white;
+            border-radius: var(--radius-lg);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+        
+        .empty-state-icon {
+            font-size: 5rem;
+            margin-bottom: 1.5rem;
+            opacity: 0.5;
+        }
+        
+        .empty-state h3 {
+            font-size: 1.5rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .empty-state p {
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+        }
+        
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 2.5rem;
+            max-width: 550px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: modalSlideIn 0.3s ease;
+        }
+        
+        @keyframes modalSlideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 3px solid var(--secondary-color);
+        }
+        
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .modal-close {
+            background: #f0f4f8;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 1.5rem;
             cursor: pointer;
             transition: all 0.3s ease;
-            border-bottom: 3px solid transparent;
-            margin-bottom: -3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        .tab-btn:hover {
-            background: rgba(0, 51, 102, 0.05);
-            color: var(--primary-color);
+        
+        .modal-close:hover {
+            background: #dc3545;
+            color: white;
+            transform: rotate(90deg);
         }
-        .tab-btn.active {
-            background: white;
-            color: var(--primary-color);
-            border-bottom-color: var(--secondary-color);
-            font-weight: 700;
-        }
-        .tab-content {
-            display: none;
-            padding: 2rem;
-        }
-        .tab-content.active {
-            display: block;
-        }
+        
         .form-group {
             margin-bottom: 1.5rem;
         }
+        
         .form-group label {
             display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
+            margin-bottom: 0.75rem;
+            font-weight: 700;
             color: var(--primary-color);
-            font-size: 1rem;
+            font-size: 1.05rem;
         }
+        
         .form-group input[type="text"],
         .form-group select {
             width: 100%;
-            padding: 0.875rem 1rem;
+            padding: 1rem 1.25rem;
             border: 2px solid #e0e0e0;
             border-radius: var(--radius-md);
-            font-size: 1rem;
+            font-size: 1.05rem;
             transition: all 0.3s ease;
+            font-family: 'Poppins', sans-serif;
         }
+        
         .form-group input[type="text"]:focus,
         .form-group select:focus {
             outline: none;
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(0, 51, 102, 0.1);
+            box-shadow: 0 0 0 4px rgba(0, 51, 102, 0.1);
         }
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 1rem;
+        
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
         }
-        .data-table thead {
+        
+        .btn-submit {
+            flex: 1;
+            padding: 1rem 2rem;
             background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
-        }
-        .data-table th {
-            padding: 1rem;
-            text-align: left;
             color: white;
-            font-weight: 700;
-            font-size: 1rem;
-        }
-        .data-table td {
-            padding: 1rem;
-            border-bottom: 1px solid #e0e0e0;
-            font-size: 0.95rem;
-        }
-        .data-table tbody tr {
-            transition: all 0.3s ease;
-        }
-        .data-table tbody tr:hover {
-            background: #f8f9fa;
-            transform: scale(1.01);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-        .action-link {
-            padding: 0.5rem 1rem;
+            border: none;
             border-radius: var(--radius-md);
-            text-decoration: none;
-            font-weight: 600;
+            font-weight: 700;
+            font-size: 1.05rem;
+            cursor: pointer;
             transition: all 0.3s ease;
-            display: inline-block;
-            margin-right: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
         }
-        .action-link.edit {
-            background: #28a745;
-            color: white;
-        }
-        .action-link.edit:hover {
-            background: #218838;
+        
+        .btn-submit:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+            box-shadow: 0 6px 20px rgba(0, 51, 102, 0.3);
         }
-        .action-link.delete {
-            background: #dc3545;
-            color: white;
+        
+        .btn-cancel {
+            padding: 1rem 2rem;
+            background: #f0f4f8;
+            color: var(--text-primary);
+            border: none;
+            border-radius: var(--radius-md);
+            font-weight: 700;
+            font-size: 1.05rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
-        .action-link.delete:hover {
-            background: #c82333;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+        
+        .btn-cancel:hover {
+            background: #e0e0e0;
+        }
+        
+        @media (max-width: 768px) {
+            .page-header-actions {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .btn-create-new {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .departments-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -154,105 +397,136 @@ $totalRows_Recordsetd = $Recordsetd->num_rows;
     <?php include 'sidebar-component.php'; ?>
 
     <div class="admin-main-content">
-        <?php include 'header-component.php'; ?>
+        <?php 
+        $pageTitle = 'Department Management';
+        include 'header-component.php'; 
+        ?>
 
         <div class="admin-content">
-            <div class="page-header">
-                <h1>🏢 Department Management</h1>
-                <p>Create and manage departments in the system</p>
+            <!-- Page Header with Action Button -->
+            <div class="page-header-actions">
+                <div class="page-title-section">
+                    <h1><span>🏢</span> Department Management</h1>
+                    <p>Create and manage departments in the system</p>
+                </div>
+                <button class="btn-create-new" onclick="openCreateModal()">
+                    <span>➕</span> Create New Department
+                </button>
             </div>
 
-            <div class="tabs-container">
-                <div class="tabs-header">
-                    <button class="tab-btn active" onclick="switchTab(0)">➕ Create New Department</button>
-                    <button class="tab-btn" onclick="switchTab(1)">📋 Display Departments</button>
-                </div>
+            <!-- Departments Display Grid -->
+            <div class="departments-grid">
+                <?php
+                $con2 = new mysqli("localhost","root","","oes");
+                $sql = "SELECT * FROM department ORDER BY dept_name ASC";
+                $result = $con2->query($sql);
 
-                <!-- Tab 1: Create New Department -->
-                <div class="tab-content active">
-                    <form method="post" action="InsertDepartment.php">
-                        <div class="form-group">
-                            <label for="txtID">Department ID:</label>
-                            <input type="text" name="txtID" id="txtID" required placeholder="Enter Department ID">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="txtName">Department Name:</label>
-                            <input type="text" name="txtName" id="txtName" required placeholder="Enter Department Name">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="cmbFacult">Department College:</label>
-                            <select name="cmbFacult" id="cmbFacult" required>
-                                <option value="">-- Select College --</option>
-                                <?php
-                                do {  
-                                ?>
-                                <option value="<?php echo $row_Recordsetd['faculty_name']?>"><?php echo $row_Recordsetd['faculty_name']?></option>
-                                <?php
-                                } while ($row_Recordsetd = $Recordsetd->fetch_assoc());
-                                $rows = $Recordsetd->num_rows;
-                                if($rows > 0) {
-                                    $Recordsetd->data_seek(0);
-                                    $row_Recordsetd = $Recordsetd->fetch_assoc();
-                                }
-                                ?>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <button type="submit" class="btn btn-primary">
-                                ✓ Submit
-                            </button>
-                        </div>
-                    </form>
+                if($result->num_rows > 0) {
+                    while($row = $result->fetch_array()) {
+                        $Id = $row['deptno'];
+                        $DepartmentName = $row['dept_name'];
+                        $DeptFaculty = $row['faculty_name'];
+                ?>
+                <div class="department-card">
+                    <div class="department-icon">🏢</div>
+                    <div class="department-id">ID: <?php echo $Id; ?></div>
+                    <div class="department-name"><?php echo $DepartmentName; ?></div>
+                    <div class="department-college">
+                        <span>🏛️</span>
+                        <span><?php echo $DeptFaculty; ?></span>
+                    </div>
+                    <div class="department-actions">
+                        <a href="EditDepartment.php?ID=<?php echo $Id; ?>" class="action-btn edit">
+                            <span>✏️</span> Edit
+                        </a>
+                        <a href="DeleteDepartment.php?ID=<?php echo $Id; ?>" class="action-btn delete" onclick="return confirm('Are you sure you want to delete this department?')">
+                            <span>🗑️</span> Delete
+                        </a>
+                    </div>
                 </div>
-
-                <!-- Tab 2: Display Departments -->
-                <div class="tab-content">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Department ID</th>
-                                <th>Department Name</th>
-                                <th>College</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php
-                            $con2 = new mysqli("localhost","root","","oes");
-                            $sql = "select * from department";
-                            $result = $con2->query($sql);
-
-                            while($row = $result->fetch_array())
-                            {
-                                $Id=$row['deptno'];
-                                $DepartmentName=$row['dept_name'];
-                                $DeptFaculty=$row['faculty_name'];
-                            ?>
-                            <tr>
-                                <td><strong><?php echo $Id;?></strong></td>
-                                <td><?php echo $DepartmentName;?></td>
-                                <td><?php echo $DeptFaculty;?></td>
-                                <td>
-                                    <a href="EditDepartment.php?ID=<?php echo $Id;?>" class="action-link edit">✏️ Edit</a>
-                                    <a href="DeleteDepartment.php?ID=<?php echo $Id;?>" class="action-link delete" onclick="return confirm('Are you sure you want to delete this department?')">🗑️ Delete</a>
-                                </td>
-                            </tr>
-                            <?php
-                            }
-                            $con2->close();
-                            ?>
-                        </tbody>
-                    </table>
+                <?php
+                    }
+                } else {
+                ?>
+                <div class="empty-state" style="grid-column: 1 / -1;">
+                    <div class="empty-state-icon">🏢</div>
+                    <h3>No Departments Found</h3>
+                    <p>Click "Create New Department" to add your first department</p>
                 </div>
+                <?php
+                }
+                $con2->close();
+                ?>
             </div>
         </div>
     </div>
 
-    <script>
+    <!-- Create Department Modal -->
+    <div class="modal" id="createModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><span>➕</span> Create New Department</h2>
+                <button class="modal-close" onclick="closeCreateModal()">×</button>
+            </div>
+            <form method="post" action="InsertDepartment.php">
+                <div class="form-group">
+                    <label for="txtID">Department ID:</label>
+                    <input type="text" name="txtID" id="txtID" required placeholder="Enter Department ID (e.g., DEPT001)">
+                </div>
+                
+                <div class="form-group">
+                    <label for="txtName">Department Name:</label>
+                    <input type="text" name="txtName" id="txtName" required placeholder="Enter Department Name">
+                </div>
+                
+                <div class="form-group">
+                    <label for="cmbFacult">Department College:</label>
+                    <select name="cmbFacult" id="cmbFacult" required>
+                        <option value="">-- Select College --</option>
+                        <?php
+                        foreach($faculties as $faculty) {
+                        ?>
+                        <option value="<?php echo $faculty['faculty_name']?>"><?php echo $faculty['faculty_name']?></option>
+                        <?php
+                        }
+                        ?>
+                    </select>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="btn-submit">
+                        <span>✓</span> Create Department
+                    </button>
+                    <button type="button" class="btn-cancel" onclick="closeCreateModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script src="../assets/js/admin-sidebar.js?v=<?php echo time(); ?>"></script>
+    <script>
+        function openCreateModal() {
+            document.getElementById('createModal').classList.add('active');
+        }
+        
+        function closeCreateModal() {
+            document.getElementById('createModal').classList.remove('active');
+        }
+        
+        // Close modal when clicking outside
+        document.getElementById('createModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeCreateModal();
+            }
+        });
+        
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeCreateModal();
+            }
+        });
+    </script>
 </body>
 </html>
 <?php 

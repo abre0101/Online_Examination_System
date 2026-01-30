@@ -14,68 +14,7 @@ if(isset($_SESSION['username'])){
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body class="admin-layout">
-<body class="admin-layout">
-    <!-- Left Sidebar -->
-    <aside class="admin-sidebar" id="adminSidebar">
-        <div class="sidebar-header">
-            <img src="../images/logo1.png" alt="Logo" class="sidebar-logo" onerror="this.style.display='none'">
-            <h2 class="sidebar-title">Admin Panel</h2>
-            <p class="sidebar-subtitle">Debre Markos University</p>
-            <button class="sidebar-toggle-btn" onclick="toggleSidebarMinimize()" title="Toggle Sidebar">
-                <span id="toggleIcon">◀</span>
-            </button>
-        </div>
-
-        <nav class="sidebar-nav">
-            <a href="index-modern.php" class="sidebar-nav-item active">
-                <span class="sidebar-nav-icon">📊</span>
-                <span>Dashboard</span>
-            </a>
-            <a href="Faculty.php" class="sidebar-nav-item">
-                <span class="sidebar-nav-icon">🏛️</span>
-                <span>College</span>
-            </a>
-            <a href="Department.php" class="sidebar-nav-item">
-                <span class="sidebar-nav-icon">🏢</span>
-                <span>Department</span>
-            </a>
-            <a href="Course.php" class="sidebar-nav-item">
-                <span class="sidebar-nav-icon">📚</span>
-                <span>Course</span>
-            </a>
-            <a href="ECommittee.php" class="sidebar-nav-item">
-                <span class="sidebar-nav-icon">👥</span>
-                <span>Exam Committee</span>
-            </a>
-            <a href="Instructor.php" class="sidebar-nav-item">
-                <span class="sidebar-nav-icon">👨‍🏫</span>
-                <span>Instructor</span>
-            </a>
-            <a href="Student-modern.php" class="sidebar-nav-item">
-                <span class="sidebar-nav-icon">👨‍🎓</span>
-                <span>Student</span>
-            </a>
-            <a href="SystemSettings.php" class="sidebar-nav-item">
-                <span class="sidebar-nav-icon">⚙️</span>
-                <span>System Settings</span>
-            </a>
-        </nav>
-
-        <div class="sidebar-footer">
-            <div class="sidebar-user">
-                <div class="sidebar-user-avatar">
-                    <?php echo strtoupper(substr($_SESSION['username'], 0, 1)); ?>
-                </div>
-                <div class="sidebar-user-info">
-                    <div class="sidebar-user-name"><?php echo $_SESSION['username']; ?></div>
-                    <div class="sidebar-user-role">Administrator</div>
-                </div>
-            </div>
-            <a href="Logout.php" class="btn btn-danger btn-block">
-                🚪 Logout
-            </a>
-        </div>
-    </aside>
+    <?php include 'sidebar-component.php'; ?>
 
     <!-- Main Content Area -->
     <div class="admin-main-content">
