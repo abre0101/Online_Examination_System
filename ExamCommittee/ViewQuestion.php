@@ -277,10 +277,25 @@ if(!$question) {
 
     <script src="../assets/js/admin-sidebar.js"></script>
     <script>
+        const questionId = <?php echo $Question_ID; ?>;
+        
         function approveQuestion() {
             if(confirm('Are you sure you want to approve this question?\n\nThis will make it available for exams.')) {
-                alert('Question approved successfully!');
-                window.location.href = 'CheckQuestions.php';
+                fetch('ApproveQuestion.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `action=approve&question_id=${questionId}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                    if(data.success) {
+                        window.location.href = 'CheckQuestions.php';
+                    }
+                })
+                .catch(error => {
+                    alert('Error: ' + error);
+                });
             }
         }
         
@@ -301,8 +316,21 @@ if(!$question) {
             }
             
             if(confirm('Send revision request to instructor?')) {
-                alert('Revision request sent successfully!');
-                window.location.href = 'CheckQuestions.php';
+                fetch('ApproveQuestion.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `action=revision&question_id=${questionId}&comments=${encodeURIComponent(comment)}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                    if(data.success) {
+                        window.location.href = 'CheckQuestions.php';
+                    }
+                })
+                .catch(error => {
+                    alert('Error: ' + error);
+                });
             }
         }
         
@@ -310,8 +338,21 @@ if(!$question) {
             const reason = prompt('Enter reason for rejection:');
             if(reason && reason.trim()) {
                 if(confirm('Are you sure you want to reject this question?')) {
-                    alert('Question rejected!');
-                    window.location.href = 'CheckQuestions.php';
+                    fetch('ApproveQuestion.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: `action=reject&question_id=${questionId}&reason=${encodeURIComponent(reason)}`
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        alert(data.message);
+                        if(data.success) {
+                            window.location.href = 'CheckQuestions.php';
+                        }
+                    })
+                    .catch(error => {
+                        alert('Error: ' + error);
+                    });
                 }
             }
         }

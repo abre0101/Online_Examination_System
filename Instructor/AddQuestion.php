@@ -11,11 +11,18 @@ if(!isset($_SESSION['Name'])){
 $con = new mysqli("localhost","root","","oes");
 $pageTitle = "Add New Question";
 
+// Ensure topic columns exist
+$con->query("ALTER TABLE question_page ADD COLUMN IF NOT EXISTS topic_id INT AFTER course_name");
+$con->query("ALTER TABLE question_page ADD COLUMN IF NOT EXISTS topic_name VARCHAR(100) AFTER topic_id");
+
 // Get exam categories
 $exams = $con->query("SELECT * FROM exam_category");
 
 // Get all courses
 $courses = $con->query("SELECT * FROM course ORDER BY course_name");
+
+// Get all topics
+$topics = $con->query("SELECT * FROM question_topics ORDER BY course_name, chapter_number");
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -77,6 +84,19 @@ $courses = $con->query("SELECT * FROM course ORDER BY course_name");
                                     <option value="2">Semester 2</option>
                                 </select>
                             </div>
+
+                            <div class="form-group">
+                                <label>Topic/Chapter (Optional)</label>
+                                <select name="topic_id" class="form-control" id="topicSelect">
+                                    <option value="">-- No Topic --</option>
+                                    <?php while($topic = $topics->fetch_assoc()): ?>
+                                    <option value="<?php echo $topic['topic_id']; ?>" data-course="<?php echo $topic['course_name']; ?>">
+                                        <?php echo $topic['course_name']; ?> - Ch.<?php echo $topic['chapter_number']; ?>: <?php echo $topic['topic_name']; ?>
+                                    </option>
+                                    <?php endwhile; ?>
+                                </select>
+                                <small style="color: var(--text-secondary);">Organize questions by chapter/topic</small>
+                            </div>
                         </div>
                         
                         <div class="form-group">
@@ -117,6 +137,12 @@ $courses = $con->query("SELECT * FROM course ORDER BY course_name");
                                 <option value="C">Option C</option>
                                 <option value="D">Option D</option>
                             </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Point Value *</label>
+                            <input type="number" name="point_value" class="form-control" min="1" max="100" value="1" required>
+                            <small style="color: var(--text-secondary);">Points awarded for correct answer (1-100)</small>
                         </div>
                     </div>
 

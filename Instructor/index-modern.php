@@ -27,67 +27,7 @@ $total_students = $con->query("SELECT COUNT(*) as count FROM student")->fetch_as
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body class="admin-layout">
-    <!-- Sidebar -->
-    <aside class="admin-sidebar" id="adminSidebar">
-        <div class="sidebar-header">
-            <img src="../images/logo1.png" alt="Logo" class="sidebar-logo" onerror="this.style.display='none'">
-            <h2 class="sidebar-title">Instructor Panel</h2>
-            <p class="sidebar-subtitle">Debre Markos University</p>
-            <button class="sidebar-toggle-btn" onclick="toggleSidebarMinimize()" title="Toggle Sidebar">
-                <span id="toggleIcon">◀</span>
-            </button>
-        </div>
-
-        <nav class="sidebar-nav">
-            <a href="index-modern.php" class="sidebar-nav-item active">
-                <span class="sidebar-nav-icon">📊</span>
-                <span>Dashboard</span>
-            </a>
-            <a href="ManageQuestions.php" class="sidebar-nav-item">
-                <span class="sidebar-nav-icon">📝</span>
-                <span>Manage Questions</span>
-            </a>
-            <a href="ManageExams.php" class="sidebar-nav-item">
-                <span class="sidebar-nav-icon">📋</span>
-                <span>Manage Exams</span>
-            </a>
-            <a href="ManageSchedule.php" class="sidebar-nav-item">
-                <span class="sidebar-nav-icon">📅</span>
-                <span>Manage Schedule</span>
-            </a>
-            <a href="SeeResults.php" class="sidebar-nav-item">
-                <span class="sidebar-nav-icon">📊</span>
-                <span>See Results</span>
-            </a>
-            <a href="MyCourses.php" class="sidebar-nav-item">
-                <span class="sidebar-nav-icon">👨‍🏫</span>
-                <span>My Courses</span>
-            </a>
-            <a href="Settings.php" class="sidebar-nav-item">
-                <span class="sidebar-nav-icon">⚙️</span>
-                <span>Settings</span>
-            </a>
-            <a href="Help.php" class="sidebar-nav-item">
-                <span class="sidebar-nav-icon">❓</span>
-                <span>Help & Support</span>
-            </a>
-        </nav>
-
-        <div class="sidebar-footer">
-            <div class="sidebar-user">
-                <div class="sidebar-user-avatar">
-                    <?php echo strtoupper(substr($_SESSION['Name'], 0, 1)); ?>
-                </div>
-                <div class="sidebar-user-info">
-                    <div class="sidebar-user-name"><?php echo $_SESSION['Name']; ?></div>
-                    <div class="sidebar-user-role">Instructor</div>
-                </div>
-            </div>
-            <a href="Logout.php" class="btn btn-danger btn-block">
-                🚪 Logout
-            </a>
-        </div>
-    </aside>
+    <?php include 'sidebar-component.php'; ?>
 
     <!-- Main Content -->
     <div class="admin-main-content">

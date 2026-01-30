@@ -47,6 +47,10 @@
             <span class="sidebar-nav-icon">🏛️</span>
             <span>Department Exams</span>
         </a>
+        <a href="ApprovalHistory.php" class="sidebar-nav-item <?php echo (basename($_SERVER['PHP_SELF']) == 'ApprovalHistory.php') ? 'active' : ''; ?>">
+            <span class="sidebar-nav-icon">📜</span>
+            <span>Approval History</span>
+        </a>
         
         <!-- Settings & Support -->
         <div class="sidebar-section-label">Settings & Support</div>

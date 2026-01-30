@@ -11,12 +11,26 @@ if(!isset($_SESSION['Name'])){
 $con = new mysqli("localhost","root","","oes");
 $pageTitle = "Check Questions";
 
+// Add approval_status column if it doesn't exist
+$con->query("ALTER TABLE question_page ADD COLUMN IF NOT EXISTS approval_status ENUM('pending', 'approved', 'revision', 'rejected') DEFAULT 'pending'");
+
+// Filter by status
+$statusFilter = isset($_GET['status']) ? $_GET['status'] : 'all';
+$whereClause = $statusFilter != 'all' ? "WHERE qp.approval_status = '$statusFilter'" : "";
+
 // Get questions from question_page table
 $questions = $con->query("SELECT qp.*, ec.exam_name 
     FROM question_page qp 
     LEFT JOIN exam_category ec ON qp.exam_id = ec.exam_id 
+    $whereClause
     ORDER BY qp.question_id DESC 
-    LIMIT 20");
+    LIMIT 50");
+
+// Get counts for each status
+$pendingCount = $con->query("SELECT COUNT(*) as count FROM question_page WHERE approval_status = 'pending' OR approval_status IS NULL")->fetch_assoc()['count'];
+$approvedCount = $con->query("SELECT COUNT(*) as count FROM question_page WHERE approval_status = 'approved'")->fetch_assoc()['count'];
+$revisionCount = $con->query("SELECT COUNT(*) as count FROM question_page WHERE approval_status = 'revision'")->fetch_assoc()['count'];
+$rejectedCount = $con->query("SELECT COUNT(*) as count FROM question_page WHERE approval_status = 'rejected'")->fetch_assoc()['count'];
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -41,6 +55,32 @@ $questions = $con->query("SELECT qp.*, ec.exam_name
                 <p>Review and approve examination questions</p>
             </div>
 
+            <!-- Status Filter Tabs -->
+            <div style="background: white; border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 2rem; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);">
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <a href="?status=all" class="filter-tab <?php echo $statusFilter == 'all' ? 'active' : ''; ?>" style="flex: 1; min-width: 150px; padding: 1rem; text-align: center; border-radius: var(--radius-md); text-decoration: none; transition: all 0.3s; <?php echo $statusFilter == 'all' ? 'background: var(--primary-color); color: white;' : 'background: var(--bg-light); color: var(--text-primary);'; ?>">
+                        <div style="font-size: 1.5rem; font-weight: 700;"><?php echo $pendingCount + $approvedCount + $revisionCount + $rejectedCount; ?></div>
+                        <div style="font-size: 0.9rem; opacity: 0.9;">All Questions</div>
+                    </a>
+                    <a href="?status=pending" class="filter-tab <?php echo $statusFilter == 'pending' ? 'active' : ''; ?>" style="flex: 1; min-width: 150px; padding: 1rem; text-align: center; border-radius: var(--radius-md); text-decoration: none; transition: all 0.3s; <?php echo $statusFilter == 'pending' ? 'background: var(--warning-color); color: white;' : 'background: var(--bg-light); color: var(--text-primary);'; ?>">
+                        <div style="font-size: 1.5rem; font-weight: 700;"><?php echo $pendingCount; ?></div>
+                        <div style="font-size: 0.9rem; opacity: 0.9;">⏳ Pending</div>
+                    </a>
+                    <a href="?status=approved" class="filter-tab <?php echo $statusFilter == 'approved' ? 'active' : ''; ?>" style="flex: 1; min-width: 150px; padding: 1rem; text-align: center; border-radius: var(--radius-md); text-decoration: none; transition: all 0.3s; <?php echo $statusFilter == 'approved' ? 'background: var(--success-color); color: white;' : 'background: var(--bg-light); color: var(--text-primary);'; ?>">
+                        <div style="font-size: 1.5rem; font-weight: 700;"><?php echo $approvedCount; ?></div>
+                        <div style="font-size: 0.9rem; opacity: 0.9;">✓ Approved</div>
+                    </a>
+                    <a href="?status=revision" class="filter-tab <?php echo $statusFilter == 'revision' ? 'active' : ''; ?>" style="flex: 1; min-width: 150px; padding: 1rem; text-align: center; border-radius: var(--radius-md); text-decoration: none; transition: all 0.3s; <?php echo $statusFilter == 'revision' ? 'background: #ff9800; color: white;' : 'background: var(--bg-light); color: var(--text-primary);'; ?>">
+                        <div style="font-size: 1.5rem; font-weight: 700;"><?php echo $revisionCount; ?></div>
+                        <div style="font-size: 0.9rem; opacity: 0.9;">✏️ Revision</div>
+                    </a>
+                    <a href="?status=rejected" class="filter-tab <?php echo $statusFilter == 'rejected' ? 'active' : ''; ?>" style="flex: 1; min-width: 150px; padding: 1rem; text-align: center; border-radius: var(--radius-md); text-decoration: none; transition: all 0.3s; <?php echo $statusFilter == 'rejected' ? 'background: #dc3545; color: white;' : 'background: var(--bg-light); color: var(--text-primary);'; ?>">
+                        <div style="font-size: 1.5rem; font-weight: 700;"><?php echo $rejectedCount; ?></div>
+                        <div style="font-size: 0.9rem; opacity: 0.9;">✗ Rejected</div>
+                    </a>
+                </div>
+            </div>
+
             <!-- Questions List -->
             <div>
                 <?php if($questions && $questions->num_rows > 0): ?>
@@ -56,8 +96,18 @@ $questions = $con->query("SELECT qp.*, ec.exam_name
                                     <strong>Question ID:</strong> <?php echo $q['question_id']; ?>
                                 </div>
                             </div>
-                            <span style="padding: 0.35rem 0.75rem; border-radius: var(--radius-sm); font-size: 0.85rem; font-weight: 700; background: #ffc107; color: #000;">
-                                Pending Review
+                            <?php 
+                            $status = $q['approval_status'] ?? 'pending';
+                            $statusColors = [
+                                'pending' => ['bg' => '#ffc107', 'text' => '#000', 'icon' => '⏳'],
+                                'approved' => ['bg' => 'var(--success-color)', 'text' => 'white', 'icon' => '✓'],
+                                'revision' => ['bg' => '#ff9800', 'text' => 'white', 'icon' => '✏️'],
+                                'rejected' => ['bg' => '#dc3545', 'text' => 'white', 'icon' => '✗']
+                            ];
+                            $statusInfo = $statusColors[$status];
+                            ?>
+                            <span style="padding: 0.35rem 0.75rem; border-radius: var(--radius-sm); font-size: 0.85rem; font-weight: 700; background: <?php echo $statusInfo['bg']; ?>; color: <?php echo $statusInfo['text']; ?>;">
+                                <?php echo $statusInfo['icon']; ?> <?php echo ucfirst($status); ?>
                             </span>
                         </div>
                         

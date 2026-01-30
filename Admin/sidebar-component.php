@@ -22,6 +22,10 @@
 
         <!-- Academic Section -->
         <div class="sidebar-section-label">Academic</div>
+        <a href="AcademicCalendar.php" class="sidebar-nav-item <?php echo (basename($_SERVER['PHP_SELF']) == 'AcademicCalendar.php') ? 'active' : ''; ?>" data-tooltip="Academic Calendar">
+            <span class="sidebar-nav-icon">📅</span>
+            <span>Academic Calendar</span>
+        </a>
         <a href="Faculty.php" class="sidebar-nav-item <?php echo (basename($_SERVER['PHP_SELF']) == 'Faculty.php') ? 'active' : ''; ?>" data-tooltip="Colleges">
             <span class="sidebar-nav-icon">🏛️</span>
             <span>Colleges</span>
@@ -49,9 +53,21 @@
             <span class="sidebar-nav-icon">👥</span>
             <span>Exam Committee</span>
         </a>
+        <a href="ResetPassword.php" class="sidebar-nav-item <?php echo (basename($_SERVER['PHP_SELF']) == 'ResetPassword.php') ? 'active' : ''; ?>" data-tooltip="Reset Password">
+            <span class="sidebar-nav-icon">🔐</span>
+            <span>Reset Password</span>
+        </a>
+        <a href="BulkImport.php" class="sidebar-nav-item <?php echo (basename($_SERVER['PHP_SELF']) == 'BulkImport.php') ? 'active' : ''; ?>" data-tooltip="Bulk Import">
+            <span class="sidebar-nav-icon">📥</span>
+            <span>Bulk Import</span>
+        </a>
 
         <!-- System Section -->
         <div class="sidebar-section-label">System</div>
+        <a href="SystemMonitoring.php" class="sidebar-nav-item <?php echo (basename($_SERVER['PHP_SELF']) == 'SystemMonitoring.php') ? 'active' : ''; ?>" data-tooltip="System Monitoring">
+            <span class="sidebar-nav-icon">📊</span>
+            <span>System Monitoring</span>
+        </a>
         <a href="Reports.php" class="sidebar-nav-item <?php echo (basename($_SERVER['PHP_SELF']) == 'Reports.php') ? 'active' : ''; ?>" data-tooltip="Reports">
             <span class="sidebar-nav-icon">📈</span>
             <span>Reports</span>
